@@ -22,6 +22,12 @@ bool Renderer::init() {
     sdlRenderer = SDL_CreateRenderer(window, NULL);
     if (!sdlRenderer) return false;
 
+    // Stel logische presentatie in voor automatische schaling
+    // Dit zorgt ervoor dat de game altijd 800x600 "denkt" te zijn,
+    // maar SDL schaalt het automatisch naar de venstergrootte
+    SDL_SetRenderLogicalPresentation(sdlRenderer, BASE_WIDTH, BASE_HEIGHT,
+                                      SDL_LOGICAL_PRESENTATION_LETTERBOX);
+
     return true;
 
 }
