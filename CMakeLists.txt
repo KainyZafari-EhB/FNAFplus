@@ -28,6 +28,9 @@ add_executable(FNAF src/main.cpp
         src/Renderer.cpp
         include/Renderer.h)
 
+# Add include directories for the project headers
+target_include_directories(FNAF PRIVATE ${CMAKE_SOURCE_DIR}/include)
+
 # Link to the SDL3 imported target if it exists. If not found, warn the user.
 if(TARGET SDL3::SDL3)
     target_link_libraries(FNAF PRIVATE SDL3::SDL3)

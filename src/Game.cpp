@@ -13,11 +13,12 @@
 
 Game::Game() : bonnie("Bonnie", 10), chica("Chica", 10), freddy("Freddy", 10) {
     this->running = true;
+    renderer = new Renderer();
 }
 
 bool Game::init() {
     gameStartTime = SDL_GetTicks();
-    return renderer.init();
+    return renderer->init();
 }
 
 void Game::check_input() {
@@ -42,7 +43,7 @@ void Game::check_input() {
                     break;
                 case SDLK_F11:
                     // Toggle fullscreen
-                    renderer.toggleFullscreen();
+                    renderer->toggleFullscreen();
                     break;
                 //sluit de applicatie als je "ESC" indrukt
                 case SDLK_ESCAPE:
@@ -119,18 +120,22 @@ float Game::berekenVerbruik() {
 }
 
 void Game::render() {
-    renderer.render(office, bonnie, chica, freddy, getElapsedTime(), getRemainingTime());
+    renderer->render(office, bonnie, chica, freddy, getElapsedTime(), getRemainingTime());
 }
 
 void Game::renderJumpscare() {
-    renderer.renderJumpscare();
+    renderer->renderJumpscare();
 }
 
 void Game::renderVictoryScreen() {
-    renderer.renderVictoryScreen();
+    renderer->renderVictoryScreen();
 }
 
 void Game::clean() {
-    renderer.clean();
+    if (renderer) {
+        renderer->clean();
+        delete renderer;
+        renderer = nullptr;
+    }
 }
 

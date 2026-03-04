@@ -1,7 +1,11 @@
 #include "../include/Renderer.h"
+#include "../include/Office.h"
 #include <iostream>
 #include <map>
 #include <random>
+
+// Forward declaration for helper function
+const char* getRoomName(Room room);
 
 Renderer::Renderer() {
 }

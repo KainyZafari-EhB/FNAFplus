@@ -4,9 +4,11 @@
 
 #ifndef FNAF_GAME_H
 #define FNAF_GAME_H
+
+#include <SDL3/SDL.h>
 #include "Office.h"
-#include "Renderer.h"
-#include "SDL3/SDL_events.h"
+
+class Renderer;  // Forward declaration to avoid circular dependency
 
 
 class Game {
@@ -47,7 +49,7 @@ private:
     Animatronic bonnie;
     Animatronic chica;
     Animatronic freddy;
-    Renderer renderer;
+    Renderer* renderer = nullptr;
     bool running = true;
 
     Uint64 laatsteCheckTijd = 0;      // Voor de vloeiende power-delta
