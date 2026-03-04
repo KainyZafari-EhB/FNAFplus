@@ -98,17 +98,88 @@ void Renderer::drawVignette(Uint8 alpha) {
 }
 
 void Renderer::drawLowPowerTint(float powerLevel) {
-    // Stronger red tint as power decreases.
-    if (powerLevel >= 45.0f) {
+    // Subtle power warning - only intense when VERY low (under 5%)
+    // Between 5-25%: Just edge vignette and text warnings
+
+    if (powerLevel >= 25.0f) {
+        return; // No warning above 25%
+    }
+
+    // === CRITICAL POWER (0-5%) - Full red overlay ===
+    if (powerLevel < 5.0f) {
+        float intensity = (5.0f - powerLevel) / 5.0f;
+        if (intensity < 0.0f) intensity = 0.0f;
+        if (intensity > 1.0f) intensity = 1.0f;
+
+        // NOW we can use strong red (but still less than before)
+        Uint8 alpha = static_cast<Uint8>(intensity * 60.0f);
+        SDL_SetRenderDrawColor(sdlRenderer, 120, 0, 0, alpha);
+        SDL_FRect overlay = {0, 0, 800, 600};
+        SDL_RenderFillRect(sdlRenderer, &overlay);
+
+        // Flashing critical warning
+        if ((SDL_GetTicks() / 250) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 230);
+            SDL_FRect warningBG = {225, 240, 350, 120};
+            SDL_RenderFillRect(sdlRenderer, &warningBG);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, 250, 260, "!!! CRITICAL !!!");
+            SDL_RenderDebugText(sdlRenderer, 240, 285, "POWER FAILURE!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, 250, 320, "LIGHTS OUT SOON!");
+        }
         return;
     }
-    float danger = (45.0f - powerLevel) / 45.0f;
-    if (danger < 0.0f) danger = 0.0f;
-    if (danger > 1.0f) danger = 1.0f;
-    Uint8 alpha = static_cast<Uint8>(danger * 90.0f);
-    SDL_SetRenderDrawColor(sdlRenderer, 120, 0, 0, alpha);
-    SDL_FRect overlay = {0, 0, 800, 600};
-    SDL_RenderFillRect(sdlRenderer, &overlay);
+
+    // === LOW POWER (5-15%) - Moderate edge vignette only ===
+    if (powerLevel < 15.0f) {
+        float edge_intensity = (15.0f - powerLevel) / 10.0f;
+        Uint8 edge_alpha = static_cast<Uint8>(edge_intensity * 60.0f);
+
+        // RED EDGE VIGNETTE (top and sides) - NOT full screen
+        SDL_SetRenderDrawColor(sdlRenderer, 100, 0, 0, edge_alpha);
+        SDL_FRect topEdge = {0, 0, 800, 80};
+        SDL_FRect leftEdge = {0, 0, 60, 600};
+        SDL_FRect rightEdge = {740, 0, 60, 600};
+        SDL_FRect bottomEdge = {0, 520, 800, 80};
+        SDL_RenderFillRect(sdlRenderer, &topEdge);
+        SDL_RenderFillRect(sdlRenderer, &leftEdge);
+        SDL_RenderFillRect(sdlRenderer, &rightEdge);
+        SDL_RenderFillRect(sdlRenderer, &bottomEdge);
+
+        // Flashing warning box
+        if ((SDL_GetTicks() / 350) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 80, 0, 200);
+            SDL_FRect warningBG = {250, 250, 300, 100};
+            SDL_RenderFillRect(sdlRenderer, &warningBG);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, 280, 270, "!!! LOW POWER !!!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, 260, 300, "CONSERVE ENERGY!");
+        }
+        return;
+    }
+
+    // === WARNING (15-25%) - Very subtle edge vignette + text ===
+    float subtle_intensity = (25.0f - powerLevel) / 10.0f;
+    Uint8 subtle_alpha = static_cast<Uint8>(subtle_intensity * 30.0f);
+
+    // Very subtle red edges
+    SDL_SetRenderDrawColor(sdlRenderer, 80, 0, 0, subtle_alpha);
+    SDL_FRect topEdge = {0, 0, 800, 50};
+    SDL_FRect leftEdge = {0, 0, 40, 600};
+    SDL_FRect rightEdge = {760, 0, 40, 600};
+    SDL_FRect bottomEdge = {0, 550, 800, 50};
+    SDL_RenderFillRect(sdlRenderer, &topEdge);
+    SDL_RenderFillRect(sdlRenderer, &leftEdge);
+    SDL_RenderFillRect(sdlRenderer, &rightEdge);
+    SDL_RenderFillRect(sdlRenderer, &bottomEdge);
+
+    // Simple warning text at bottom
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 150, 0, 220);
+    SDL_RenderDebugText(sdlRenderer, 330, 570, "LOW POWER");
 }
 
 void Renderer::drawPowerBar(float powerLevel) {
@@ -344,57 +415,110 @@ void Renderer::drawDoorStatus(bool left, bool right, const Animatronic& bonnie, 
         SDL_FRect leftHandle = {125, 210, 10, 20};
         SDL_RenderFillRect(sdlRenderer, &leftHandle);
     } else {
-        // Open - donkere gang
+        // Open - DARK HALLWAY WITH DEPTH
+        // Deep darkness gradient (pitch black going deeper)
+        SDL_SetRenderDrawColor(sdlRenderer, 1, 1, 2, 255);
+        SDL_FRect hallwayDeep = {40, 90, 100, 250};
+        SDL_RenderFillRect(sdlRenderer, &hallwayDeep);
+
+        // Slightly lighter near entrance
         SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
-        SDL_RenderFillRect(sdlRenderer, &leftDoor);
+        SDL_FRect hallwayNear = {40, 110, 100, 210};
+        SDL_RenderFillRect(sdlRenderer, &hallwayNear);
 
         // === ANIMATRONIC IN LEFT DOORWAY ===
         if (isAnimatronicInRoom(LEFT_OFFICE, bonnie)) {
-            // BONNIE lurking in left doorway (SUPER SCARY!)
-            float bX = 55.0f;
-            float bY = 120.0f;
+            // === BONNIE - MENACING PRESENCE IN DARKNESS ===
+            float bX = 50.0f;
+            float bY = 100.0f;
 
-            // Silhouette in darkness
-            SDL_SetRenderDrawColor(sdlRenderer, 90, 50, 140, 255);
-            SDL_FRect bonnieBody = {bX, bY + 50, 65, 130};
+            // Shadow cast from dim hallway light behind
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 120);
+            SDL_FRect shadow = {bX + 15, bY + 200, 50, 50};
+            SDL_RenderFillRect(sdlRenderer, &shadow);
+
+            // Dark silhouette (barely visible purple tint)
+            SDL_SetRenderDrawColor(sdlRenderer, 45, 25, 70, 255);
+            SDL_FRect bonnieBody = {bX + 5, bY + 70, 70, 150};
             SDL_RenderFillRect(sdlRenderer, &bonnieBody);
 
-            SDL_SetRenderDrawColor(sdlRenderer, 100, 60, 150, 255);
-            SDL_FRect bonnieHead = {bX + 10, bY, 45, 60};
+            // Head (slightly lighter, looming forward)
+            SDL_SetRenderDrawColor(sdlRenderer, 55, 30, 85, 255);
+            SDL_FRect bonnieHead = {bX + 12, bY + 20, 55, 65};
             SDL_RenderFillRect(sdlRenderer, &bonnieHead);
 
-            // TALL EARS (very recognizable silhouette)
-            SDL_SetRenderDrawColor(sdlRenderer, 80, 40, 130, 255);
-            SDL_FRect ear1 = {bX + 13, bY - 35, 14, 45};
-            SDL_FRect ear2 = {bX + 38, bY - 35, 14, 45};
+            // TALL MENACING EARS (signature silhouette piercing upward)
+            SDL_SetRenderDrawColor(sdlRenderer, 40, 20, 65, 255);
+            SDL_FRect ear1 = {bX + 17, bY - 30, 16, 55};
+            SDL_FRect ear2 = {bX + 47, bY - 30, 16, 55};
             SDL_RenderFillRect(sdlRenderer, &ear1);
             SDL_RenderFillRect(sdlRenderer, &ear2);
 
-            // GLOWING RED EYES piercing through darkness
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
-            SDL_FRect eye1 = {bX + 20, bY + 20, 10, 15};
-            SDL_FRect eye2 = {bX + 35, bY + 20, 10, 15};
+            // Inner ears (faint pink, barely visible)
+            SDL_SetRenderDrawColor(sdlRenderer, 60, 25, 45, 255);
+            SDL_FRect earInner1 = {bX + 20, bY - 22, 10, 35};
+            SDL_FRect earInner2 = {bX + 50, bY - 22, 10, 35};
+            SDL_RenderFillRect(sdlRenderer, &earInner1);
+            SDL_RenderFillRect(sdlRenderer, &earInner2);
+
+            // === PIERCING RED EYES (THE HORROR!) ===
+            // Intense outer glow (blood red aura)
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 60);
+            SDL_FRect glowOuter1 = {bX + 18, bY + 35, 22, 28};
+            SDL_FRect glowOuter2 = {bX + 40, bY + 35, 22, 28};
+            SDL_RenderFillRect(sdlRenderer, &glowOuter1);
+            SDL_RenderFillRect(sdlRenderer, &glowOuter2);
+
+            // Mid glow
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 120);
+            SDL_FRect glowMid1 = {bX + 20, bY + 37, 18, 24};
+            SDL_FRect glowMid2 = {bX + 42, bY + 37, 18, 24};
+            SDL_RenderFillRect(sdlRenderer, &glowMid1);
+            SDL_RenderFillRect(sdlRenderer, &glowMid2);
+
+            // Bright glowing eyes
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 30, 30, 255);
+            SDL_FRect eye1 = {bX + 23, bY + 40, 12, 18};
+            SDL_FRect eye2 = {bX + 45, bY + 40, 12, 18};
             SDL_RenderFillRect(sdlRenderer, &eye1);
             SDL_RenderFillRect(sdlRenderer, &eye2);
 
-            // Eye glow effect
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 80);
-            SDL_FRect glow1 = {bX + 17, bY + 17, 16, 21};
-            SDL_FRect glow2 = {bX + 32, bY + 17, 16, 21};
-            SDL_RenderFillRect(sdlRenderer, &glow1);
-            SDL_RenderFillRect(sdlRenderer, &glow2);
-
-            // Pupils staring at you
+            // Pupils (pure black, staring directly at YOU)
             SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-            SDL_FRect pupil1 = {bX + 23, bY + 24, 4, 7};
-            SDL_FRect pupil2 = {bX + 38, bY + 24, 4, 7};
+            SDL_FRect pupil1 = {bX + 26, bY + 45, 6, 8};
+            SDL_FRect pupil2 = {bX + 48, bY + 45, 6, 8};
             SDL_RenderFillRect(sdlRenderer, &pupil1);
             SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-            // Guitar silhouette
-            SDL_SetRenderDrawColor(sdlRenderer, 150, 30, 30, 255);
-            SDL_FRect guitar = {bX - 5, bY + 120, 20, 50};
+            // Faint reflection in eyes (makes them look wet/alive)
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 100, 180);
+            SDL_FRect eyeReflect1 = {bX + 27, bY + 43, 3, 4};
+            SDL_FRect eyeReflect2 = {bX + 49, bY + 43, 3, 4};
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect1);
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect2);
+
+            // Arms reaching forward (menacing pose)
+            SDL_SetRenderDrawColor(sdlRenderer, 35, 18, 60, 255);
+            SDL_FRect arm1 = {bX - 5, bY + 90, 22, 85};
+            SDL_FRect arm2 = {bX + 63, bY + 90, 22, 85};
+            SDL_RenderFillRect(sdlRenderer, &arm1);
+            SDL_RenderFillRect(sdlRenderer, &arm2);
+
+            // Guitar silhouette (dark red, barely visible)
+            SDL_SetRenderDrawColor(sdlRenderer, 80, 15, 15, 255);
+            SDL_FRect guitar = {bX - 8, bY + 140, 18, 60};
             SDL_RenderFillRect(sdlRenderer, &guitar);
+            SDL_FRect guitarNeck = {bX - 3, bY + 115, 8, 30};
+            SDL_RenderFillRect(sdlRenderer, &guitarNeck);
+
+            // Teeth/mouth hint (creepy grin in shadows)
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 100);
+            SDL_FRect tooth1 = {bX + 30, bY + 65, 3, 5};
+            SDL_FRect tooth2 = {bX + 35, bY + 65, 3, 5};
+            SDL_FRect tooth3 = {bX + 40, bY + 65, 3, 5};
+            SDL_RenderFillRect(sdlRenderer, &tooth1);
+            SDL_RenderFillRect(sdlRenderer, &tooth2);
+            SDL_RenderFillRect(sdlRenderer, &tooth3);
         }
     }
     SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
@@ -435,114 +559,233 @@ void Renderer::drawDoorStatus(bool left, bool right, const Animatronic& bonnie, 
         SDL_FRect rightHandle = {665, 210, 10, 20};
         SDL_RenderFillRect(sdlRenderer, &rightHandle);
     } else {
-        // Open - donkere gang
+        // Open - DARK HALLWAY WITH DEPTH
+        SDL_SetRenderDrawColor(sdlRenderer, 1, 1, 2, 255);
+        SDL_FRect hallwayDeep = {660, 90, 100, 250};
+        SDL_RenderFillRect(sdlRenderer, &hallwayDeep);
+
         SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
-        SDL_RenderFillRect(sdlRenderer, &rightDoor);
+        SDL_FRect hallwayNear = {660, 110, 100, 210};
+        SDL_RenderFillRect(sdlRenderer, &hallwayNear);
 
         // === ANIMATRONICS IN RIGHT DOORWAY ===
         // Check for Chica first
         if (isAnimatronicInRoom(RIGHT_OFFICE, chica)) {
-            // CHICA lurking in right doorway
-            float cX = 680.0f;
-            float cY = 120.0f;
+            // === CHICA - MENACING YELLOW NIGHTMARE ===
+            float cX = 672.0f;
+            float cY = 95.0f;
 
-            // Silhouette
-            SDL_SetRenderDrawColor(sdlRenderer, 180, 160, 60, 255);
-            SDL_FRect chicaBody = {cX, cY + 50, 65, 130};
+            // Shadow cast
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 120);
+            SDL_FRect shadow = {cX + 10, cY + 205, 55, 45};
+            SDL_RenderFillRect(sdlRenderer, &shadow);
+
+            // Dark silhouette (dirty yellow in darkness)
+            SDL_SetRenderDrawColor(sdlRenderer, 100, 90, 35, 255);
+            SDL_FRect chicaBody = {cX, cY + 70, 70, 150};
             SDL_RenderFillRect(sdlRenderer, &chicaBody);
 
-            SDL_SetRenderDrawColor(sdlRenderer, 200, 180, 70, 255);
-            SDL_FRect chicaHead = {cX + 10, cY, 45, 60};
+            // Head looming forward
+            SDL_SetRenderDrawColor(sdlRenderer, 110, 100, 40, 255);
+            SDL_FRect chicaHead = {cX + 8, cY + 18, 54, 68};
             SDL_RenderFillRect(sdlRenderer, &chicaHead);
 
-            // BEAK (very recognizable)
-            SDL_SetRenderDrawColor(sdlRenderer, 220, 120, 0, 255);
-            SDL_FRect beakTop = {cX + 25, cY + 22, 20, 12};
-            SDL_FRect beakBottom = {cX + 25, cY + 36, 20, 12};
+            // === ORANGE BEAK (signature, menacing) ===
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 100, 0, 255);
+            SDL_FRect beakTop = {cX + 27, cY + 40, 26, 15};
+            SDL_FRect beakBottom = {cX + 27, cY + 58, 26, 15};
             SDL_RenderFillRect(sdlRenderer, &beakTop);
             SDL_RenderFillRect(sdlRenderer, &beakBottom);
 
-            // MAGENTA EYES
-            SDL_SetRenderDrawColor(sdlRenderer, 180, 0, 180, 255);
-            SDL_FRect eye1 = {cX + 18, cY + 18, 10, 15};
-            SDL_FRect eye2 = {cX + 37, cY + 18, 10, 15};
+            // Beak interior (dark, open mouth)
+            SDL_SetRenderDrawColor(sdlRenderer, 20, 10, 0, 255);
+            SDL_FRect beakGap = {cX + 30, cY + 55, 20, 3};
+            SDL_RenderFillRect(sdlRenderer, &beakGap);
+
+            // Sharp beak edge highlight
+            SDL_SetRenderDrawColor(sdlRenderer, 220, 130, 10, 255);
+            SDL_RenderLine(sdlRenderer, cX + 27, cY + 55, cX + 53, cY + 55);
+
+            // === MAGENTA GLOWING EYES (unsettling) ===
+            // Outer glow
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 0, 180, 60);
+            SDL_FRect glowOuter1 = {cX + 14, cY + 32, 20, 26};
+            SDL_FRect glowOuter2 = {cX + 46, cY + 32, 20, 26};
+            SDL_RenderFillRect(sdlRenderer, &glowOuter1);
+            SDL_RenderFillRect(sdlRenderer, &glowOuter2);
+
+            // Mid glow
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 200, 120);
+            SDL_FRect glowMid1 = {cX + 16, cY + 34, 16, 22};
+            SDL_FRect glowMid2 = {cX + 48, cY + 34, 16, 22};
+            SDL_RenderFillRect(sdlRenderer, &glowMid1);
+            SDL_RenderFillRect(sdlRenderer, &glowMid2);
+
+            // Bright eyes
+            SDL_SetRenderDrawColor(sdlRenderer, 220, 20, 220, 255);
+            SDL_FRect eye1 = {cX + 19, cY + 37, 11, 16};
+            SDL_FRect eye2 = {cX + 50, cY + 37, 11, 16};
             SDL_RenderFillRect(sdlRenderer, &eye1);
             SDL_RenderFillRect(sdlRenderer, &eye2);
 
-            // Pupils staring
+            // Pupils (watching)
             SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-            SDL_FRect pupil1 = {cX + 21, cY + 22, 4, 7};
-            SDL_FRect pupil2 = {cX + 40, cY + 22, 4, 7};
+            SDL_FRect pupil1 = {cX + 22, cY + 42, 5, 7};
+            SDL_FRect pupil2 = {cX + 53, cY + 42, 5, 7};
             SDL_RenderFillRect(sdlRenderer, &pupil1);
             SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-            // Bib
-            SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
-            SDL_FRect bib = {cX + 22, cY + 50, 22, 18};
+            // Eye reflections
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 255, 160);
+            SDL_FRect eyeReflect1 = {cX + 23, cY + 40, 3, 4};
+            SDL_FRect eyeReflect2 = {cX + 54, cY + 40, 3, 4};
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect1);
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect2);
+
+            // White BIB with creepy text
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 180, 175, 255);
+            SDL_FRect bib = {cX + 22, cY + 88, 26, 22};
             SDL_RenderFillRect(sdlRenderer, &bib);
+            SDL_SetRenderDrawColor(sdlRenderer, 140, 0, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, cX + 24, cY + 94, "EAT");
 
-            // Cupcake in hand
-            SDL_SetRenderDrawColor(sdlRenderer, 220, 80, 120, 255);
-            SDL_FRect cupcake = {cX + 60, cY + 110, 18, 22};
+            // Arms reaching
+            SDL_SetRenderDrawColor(sdlRenderer, 90, 80, 30, 255);
+            SDL_FRect arm1 = {cX - 8, cY + 95, 20, 90};
+            SDL_FRect arm2 = {cX + 58, cY + 95, 20, 90};
+            SDL_RenderFillRect(sdlRenderer, &arm1);
+            SDL_RenderFillRect(sdlRenderer, &arm2);
+
+            // EVIL CUPCAKE in hand (creepy!)
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 60, 100, 255);
+            SDL_FRect cupcake = {cX + 72, cY + 145, 22, 28};
             SDL_RenderFillRect(sdlRenderer, &cupcake);
-        } else if (isAnimatronicInRoom(RIGHT_OFFICE, freddy)) {
-            // FREDDY lurking in right doorway
-            float fX = 680.0f;
-            float fY = 120.0f;
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 180, 60, 255);
+            SDL_FRect frosting = {cX + 72, cY + 140, 22, 10};
+            SDL_RenderFillRect(sdlRenderer, &frosting);
 
-            // Silhouette
-            SDL_SetRenderDrawColor(sdlRenderer, 120, 70, 40, 255);
-            SDL_FRect freddyBody = {fX, fY + 50, 65, 130};
+            // Evil cupcake eyes
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
+            SDL_FRect cupcakeEye1 = {cX + 76, cY + 152, 4, 6};
+            SDL_FRect cupcakeEye2 = {cX + 86, cY + 152, 4, 6};
+            SDL_RenderFillRect(sdlRenderer, &cupcakeEye1);
+            SDL_RenderFillRect(sdlRenderer, &cupcakeEye2);
+
+        } else if (isAnimatronicInRoom(RIGHT_OFFICE, freddy)) {
+            // === FREDDY - THE LEADER'S TERRIFYING PRESENCE ===
+            float fX = 670.0f;
+            float fY = 90.0f;
+
+            // Shadow cast
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 130);
+            SDL_FRect shadow = {fX + 12, fY + 210, 58, 50};
+            SDL_RenderFillRect(sdlRenderer, &shadow);
+
+            // Dark silhouette (weathered brown)
+            SDL_SetRenderDrawColor(sdlRenderer, 70, 45, 25, 255);
+            SDL_FRect freddyBody = {fX + 2, fY + 75, 72, 155};
             SDL_RenderFillRect(sdlRenderer, &freddyBody);
 
-            SDL_SetRenderDrawColor(sdlRenderer, 130, 80, 50, 255);
-            SDL_FRect freddyHead = {fX + 10, fY, 45, 60};
+            // Head (menacing forward lean)
+            SDL_SetRenderDrawColor(sdlRenderer, 80, 50, 28, 255);
+            SDL_FRect freddyHead = {fX + 10, fY + 25, 56, 68};
             SDL_RenderFillRect(sdlRenderer, &freddyHead);
 
-            // Bear ears
-            SDL_SetRenderDrawColor(sdlRenderer, 110, 65, 40, 255);
-            SDL_FRect ear1 = {fX + 8, fY - 5, 18, 18};
-            SDL_FRect ear2 = {fX + 39, fY - 5, 18, 18};
+            // Round bear ears
+            SDL_SetRenderDrawColor(sdlRenderer, 65, 40, 22, 255);
+            SDL_FRect ear1 = {fX + 7, fY + 15, 20, 20};
+            SDL_FRect ear2 = {fX + 49, fY + 15, 20, 20};
             SDL_RenderFillRect(sdlRenderer, &ear1);
             SDL_RenderFillRect(sdlRenderer, &ear2);
 
-            // TOP HAT silhouette
-            SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
-            SDL_FRect hatTop = {fX + 8, fY - 28, 50, 28};
-            SDL_FRect hatBrim = {fX + 5, fY - 5, 56, 6};
+            // === ICONIC TOP HAT (pure black silhouette) ===
+            SDL_SetRenderDrawColor(sdlRenderer, 8, 8, 8, 255);
+            SDL_FRect hatTop = {fX + 5, fY - 18, 66, 38};
+            SDL_FRect hatBrim = {fX, fY + 15, 76, 8};
             SDL_RenderFillRect(sdlRenderer, &hatTop);
             SDL_RenderFillRect(sdlRenderer, &hatBrim);
 
-            // CYAN GLOWING EYES
-            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 220, 255);
-            SDL_FRect eye1 = {fX + 18, fY + 20, 10, 15};
-            SDL_FRect eye2 = {fX + 37, fY + 20, 10, 15};
+            // Hat band (dark red)
+            SDL_SetRenderDrawColor(sdlRenderer, 100, 20, 20, 255);
+            SDL_FRect hatBand = {fX + 5, fY + 11, 66, 7};
+            SDL_RenderFillRect(sdlRenderer, &hatBand);
+
+            // === CYAN GLOWING EYES (Freddy's signature horror) ===
+            // Outer glow
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 220, 70);
+            SDL_FRect glowOuter1 = {fX + 14, fY + 45, 22, 28};
+            SDL_FRect glowOuter2 = {fX + 40, fY + 45, 22, 28};
+            SDL_RenderFillRect(sdlRenderer, &glowOuter1);
+            SDL_RenderFillRect(sdlRenderer, &glowOuter2);
+
+            // Mid glow
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 130);
+            SDL_FRect glowMid1 = {fX + 16, fY + 47, 18, 24};
+            SDL_FRect glowMid2 = {fX + 42, fY + 47, 18, 24};
+            SDL_RenderFillRect(sdlRenderer, &glowMid1);
+            SDL_RenderFillRect(sdlRenderer, &glowMid2);
+
+            // Bright cyan eyes
+            SDL_SetRenderDrawColor(sdlRenderer, 20, 200, 255, 255);
+            SDL_FRect eye1 = {fX + 19, fY + 50, 12, 18};
+            SDL_FRect eye2 = {fX + 45, fY + 50, 12, 18};
             SDL_RenderFillRect(sdlRenderer, &eye1);
             SDL_RenderFillRect(sdlRenderer, &eye2);
 
-            // Eye glow
-            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 220, 80);
-            SDL_FRect glow1 = {fX + 15, fY + 17, 16, 21};
-            SDL_FRect glow2 = {fX + 34, fY + 17, 16, 21};
-            SDL_RenderFillRect(sdlRenderer, &glow1);
-            SDL_RenderFillRect(sdlRenderer, &glow2);
-
-            // Pupils
+            // Pupils (staring directly at player)
             SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-            SDL_FRect pupil1 = {fX + 21, fY + 24, 4, 7};
-            SDL_FRect pupil2 = {fX + 40, fY + 24, 4, 7};
+            SDL_FRect pupil1 = {fX + 22, fY + 55, 6, 8};
+            SDL_FRect pupil2 = {fX + 48, fY + 55, 6, 8};
             SDL_RenderFillRect(sdlRenderer, &pupil1);
             SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-            // Bow tie
-            SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
-            SDL_FRect bowtie = {fX + 23, fY + 60, 20, 12};
+            // Eye reflections (wet, alive look)
+            SDL_SetRenderDrawColor(sdlRenderer, 150, 220, 255, 180);
+            SDL_FRect eyeReflect1 = {fX + 23, fY + 53, 3, 5};
+            SDL_FRect eyeReflect2 = {fX + 49, fY + 53, 3, 5};
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect1);
+            SDL_RenderFillRect(sdlRenderer, &eyeReflect2);
+
+            // Snout (slightly lighter)
+            SDL_SetRenderDrawColor(sdlRenderer, 95, 60, 35, 255);
+            SDL_FRect snout = {fX + 23, fY + 68, 30, 20};
+            SDL_RenderFillRect(sdlRenderer, &snout);
+
+            // Black nose
+            SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
+            SDL_FRect nose = {fX + 31, fY + 77, 14, 9};
+            SDL_RenderFillRect(sdlRenderer, &nose);
+
+            // BOW TIE (black, formal menace)
+            SDL_SetRenderDrawColor(sdlRenderer, 18, 18, 18, 255);
+            SDL_FRect bowtie = {fX + 26, fY + 93, 24, 14};
             SDL_RenderFillRect(sdlRenderer, &bowtie);
 
-            // Microphone
-            SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
-            SDL_FRect mic = {fX - 5, fY + 110, 12, 40};
+            // Arms
+            SDL_SetRenderDrawColor(sdlRenderer, 60, 38, 20, 255);
+            SDL_FRect arm1 = {fX - 6, fY + 105, 22, 95};
+            SDL_FRect arm2 = {fX + 60, fY + 105, 22, 95};
+            SDL_RenderFillRect(sdlRenderer, &arm1);
+            SDL_RenderFillRect(sdlRenderer, &arm2);
+
+            // Microphone (metallic, worn)
+            SDL_SetRenderDrawColor(sdlRenderer, 120, 120, 120, 255);
+            SDL_FRect mic = {fX - 10, fY + 140, 14, 55};
             SDL_RenderFillRect(sdlRenderer, &mic);
+            SDL_SetRenderDrawColor(sdlRenderer, 140, 140, 140, 255);
+            SDL_FRect micHead = {fX - 13, fY + 135, 20, 14};
+            SDL_RenderFillRect(sdlRenderer, &micHead);
+
+            // Teeth hint (creepy grin)
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 80);
+            SDL_FRect tooth1 = {fX + 29, fY + 86, 3, 4};
+            SDL_FRect tooth2 = {fX + 34, fY + 86, 3, 4};
+            SDL_FRect tooth3 = {fX + 39, fY + 86, 3, 4};
+            SDL_FRect tooth4 = {fX + 44, fY + 86, 3, 4};
+            SDL_RenderFillRect(sdlRenderer, &tooth1);
+            SDL_RenderFillRect(sdlRenderer, &tooth2);
+            SDL_RenderFillRect(sdlRenderer, &tooth3);
+            SDL_RenderFillRect(sdlRenderer, &tooth4);
         }
     }
     SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
