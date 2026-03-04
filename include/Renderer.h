@@ -38,7 +38,7 @@ private:
     const int BASE_HEIGHT = 600;
 
     void drawPowerBar(float powerLevel);
-    void drawDoorStatus(bool left, bool right);
+    void drawDoorStatus(bool left, bool right, const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
 
     // Lightweight post-processing and UI helpers
     void drawVignette(Uint8 alpha);

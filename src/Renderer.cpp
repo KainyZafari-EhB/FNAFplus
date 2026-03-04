@@ -6,6 +6,7 @@
 
 // Forward declaration for helper function
 const char* getRoomName(Room room);
+bool isAnimatronicInRoom(Room room, const Animatronic& animatronic);
 
 Renderer::Renderer() {
 }
@@ -41,7 +42,7 @@ void Renderer::render(const Office& office, const Animatronic& bonnie, const Ani
     // STAP 2: Teken de inhoud (Kantoor OF Camera's)
     if (!office.cameraActive) {
         // We tekenen het kantoor
-        drawDoorStatus(office.leftDoorClosed, office.rightDoorClosed);
+        drawDoorStatus(office.leftDoorClosed, office.rightDoorClosed, bonnie, chica, freddy);
     } else {
         // We tekenen de camera feed van de geselecteerde kamer
         drawCameraView(office.currentCamera, bonnie, chica, freddy);
@@ -134,7 +135,7 @@ void Renderer::drawPowerBar(float powerLevel) {
     SDL_RenderDebugText(sdlRenderer, 660, 525, powerText);
 }
 
-void Renderer::drawDoorStatus(bool left, bool right) {
+void Renderer::drawDoorStatus(bool left, bool right, const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy) {
     // === ACHTERGROND - MUREN ===
     // Achter muur (industriële betonkleur)
     SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 15, 255);
@@ -346,6 +347,55 @@ void Renderer::drawDoorStatus(bool left, bool right) {
         // Open - donkere gang
         SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
         SDL_RenderFillRect(sdlRenderer, &leftDoor);
+
+        // === ANIMATRONIC IN LEFT DOORWAY ===
+        if (isAnimatronicInRoom(LEFT_OFFICE, bonnie)) {
+            // BONNIE lurking in left doorway (SUPER SCARY!)
+            float bX = 55.0f;
+            float bY = 120.0f;
+
+            // Silhouette in darkness
+            SDL_SetRenderDrawColor(sdlRenderer, 90, 50, 140, 255);
+            SDL_FRect bonnieBody = {bX, bY + 50, 65, 130};
+            SDL_RenderFillRect(sdlRenderer, &bonnieBody);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 100, 60, 150, 255);
+            SDL_FRect bonnieHead = {bX + 10, bY, 45, 60};
+            SDL_RenderFillRect(sdlRenderer, &bonnieHead);
+
+            // TALL EARS (very recognizable silhouette)
+            SDL_SetRenderDrawColor(sdlRenderer, 80, 40, 130, 255);
+            SDL_FRect ear1 = {bX + 13, bY - 35, 14, 45};
+            SDL_FRect ear2 = {bX + 38, bY - 35, 14, 45};
+            SDL_RenderFillRect(sdlRenderer, &ear1);
+            SDL_RenderFillRect(sdlRenderer, &ear2);
+
+            // GLOWING RED EYES piercing through darkness
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
+            SDL_FRect eye1 = {bX + 20, bY + 20, 10, 15};
+            SDL_FRect eye2 = {bX + 35, bY + 20, 10, 15};
+            SDL_RenderFillRect(sdlRenderer, &eye1);
+            SDL_RenderFillRect(sdlRenderer, &eye2);
+
+            // Eye glow effect
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 80);
+            SDL_FRect glow1 = {bX + 17, bY + 17, 16, 21};
+            SDL_FRect glow2 = {bX + 32, bY + 17, 16, 21};
+            SDL_RenderFillRect(sdlRenderer, &glow1);
+            SDL_RenderFillRect(sdlRenderer, &glow2);
+
+            // Pupils staring at you
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+            SDL_FRect pupil1 = {bX + 23, bY + 24, 4, 7};
+            SDL_FRect pupil2 = {bX + 38, bY + 24, 4, 7};
+            SDL_RenderFillRect(sdlRenderer, &pupil1);
+            SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+            // Guitar silhouette
+            SDL_SetRenderDrawColor(sdlRenderer, 150, 30, 30, 255);
+            SDL_FRect guitar = {bX - 5, bY + 120, 20, 50};
+            SDL_RenderFillRect(sdlRenderer, &guitar);
+        }
     }
     SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
     SDL_RenderRect(sdlRenderer, &leftDoor);
@@ -388,6 +438,112 @@ void Renderer::drawDoorStatus(bool left, bool right) {
         // Open - donkere gang
         SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
         SDL_RenderFillRect(sdlRenderer, &rightDoor);
+
+        // === ANIMATRONICS IN RIGHT DOORWAY ===
+        // Check for Chica first
+        if (isAnimatronicInRoom(RIGHT_OFFICE, chica)) {
+            // CHICA lurking in right doorway
+            float cX = 680.0f;
+            float cY = 120.0f;
+
+            // Silhouette
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 160, 60, 255);
+            SDL_FRect chicaBody = {cX, cY + 50, 65, 130};
+            SDL_RenderFillRect(sdlRenderer, &chicaBody);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 180, 70, 255);
+            SDL_FRect chicaHead = {cX + 10, cY, 45, 60};
+            SDL_RenderFillRect(sdlRenderer, &chicaHead);
+
+            // BEAK (very recognizable)
+            SDL_SetRenderDrawColor(sdlRenderer, 220, 120, 0, 255);
+            SDL_FRect beakTop = {cX + 25, cY + 22, 20, 12};
+            SDL_FRect beakBottom = {cX + 25, cY + 36, 20, 12};
+            SDL_RenderFillRect(sdlRenderer, &beakTop);
+            SDL_RenderFillRect(sdlRenderer, &beakBottom);
+
+            // MAGENTA EYES
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 0, 180, 255);
+            SDL_FRect eye1 = {cX + 18, cY + 18, 10, 15};
+            SDL_FRect eye2 = {cX + 37, cY + 18, 10, 15};
+            SDL_RenderFillRect(sdlRenderer, &eye1);
+            SDL_RenderFillRect(sdlRenderer, &eye2);
+
+            // Pupils staring
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+            SDL_FRect pupil1 = {cX + 21, cY + 22, 4, 7};
+            SDL_FRect pupil2 = {cX + 40, cY + 22, 4, 7};
+            SDL_RenderFillRect(sdlRenderer, &pupil1);
+            SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+            // Bib
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+            SDL_FRect bib = {cX + 22, cY + 50, 22, 18};
+            SDL_RenderFillRect(sdlRenderer, &bib);
+
+            // Cupcake in hand
+            SDL_SetRenderDrawColor(sdlRenderer, 220, 80, 120, 255);
+            SDL_FRect cupcake = {cX + 60, cY + 110, 18, 22};
+            SDL_RenderFillRect(sdlRenderer, &cupcake);
+        } else if (isAnimatronicInRoom(RIGHT_OFFICE, freddy)) {
+            // FREDDY lurking in right doorway
+            float fX = 680.0f;
+            float fY = 120.0f;
+
+            // Silhouette
+            SDL_SetRenderDrawColor(sdlRenderer, 120, 70, 40, 255);
+            SDL_FRect freddyBody = {fX, fY + 50, 65, 130};
+            SDL_RenderFillRect(sdlRenderer, &freddyBody);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 130, 80, 50, 255);
+            SDL_FRect freddyHead = {fX + 10, fY, 45, 60};
+            SDL_RenderFillRect(sdlRenderer, &freddyHead);
+
+            // Bear ears
+            SDL_SetRenderDrawColor(sdlRenderer, 110, 65, 40, 255);
+            SDL_FRect ear1 = {fX + 8, fY - 5, 18, 18};
+            SDL_FRect ear2 = {fX + 39, fY - 5, 18, 18};
+            SDL_RenderFillRect(sdlRenderer, &ear1);
+            SDL_RenderFillRect(sdlRenderer, &ear2);
+
+            // TOP HAT silhouette
+            SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
+            SDL_FRect hatTop = {fX + 8, fY - 28, 50, 28};
+            SDL_FRect hatBrim = {fX + 5, fY - 5, 56, 6};
+            SDL_RenderFillRect(sdlRenderer, &hatTop);
+            SDL_RenderFillRect(sdlRenderer, &hatBrim);
+
+            // CYAN GLOWING EYES
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 220, 255);
+            SDL_FRect eye1 = {fX + 18, fY + 20, 10, 15};
+            SDL_FRect eye2 = {fX + 37, fY + 20, 10, 15};
+            SDL_RenderFillRect(sdlRenderer, &eye1);
+            SDL_RenderFillRect(sdlRenderer, &eye2);
+
+            // Eye glow
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 220, 80);
+            SDL_FRect glow1 = {fX + 15, fY + 17, 16, 21};
+            SDL_FRect glow2 = {fX + 34, fY + 17, 16, 21};
+            SDL_RenderFillRect(sdlRenderer, &glow1);
+            SDL_RenderFillRect(sdlRenderer, &glow2);
+
+            // Pupils
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+            SDL_FRect pupil1 = {fX + 21, fY + 24, 4, 7};
+            SDL_FRect pupil2 = {fX + 40, fY + 24, 4, 7};
+            SDL_RenderFillRect(sdlRenderer, &pupil1);
+            SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+            // Bow tie
+            SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+            SDL_FRect bowtie = {fX + 23, fY + 60, 20, 12};
+            SDL_RenderFillRect(sdlRenderer, &bowtie);
+
+            // Microphone
+            SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
+            SDL_FRect mic = {fX - 5, fY + 110, 12, 40};
+            SDL_RenderFillRect(sdlRenderer, &mic);
+        }
     }
     SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
     SDL_RenderRect(sdlRenderer, &rightDoor);
@@ -602,8 +758,8 @@ void Renderer::drawWekker(Uint64 elapsedTime, Uint64 remainingTime) {
     SDL_RenderDebugText(sdlRenderer, 50, 45, timeBuffer);
 
     // ===== PROGRESSBALK =====
-    // Toon de voortgang visueel
-    float progress = (float)remainingSeconds / 120.0f; // 120 sec = 2 min
+    // Toon de voortgang visueel (3 minuten = 180 seconden)
+    float progress = (float)remainingSeconds / 180.0f; // 180 sec = 3 min
     if (progress < 0) progress = 0;
     if (progress > 1) progress = 1;
 
@@ -1413,74 +1569,162 @@ void Renderer::drawBackroomView(const Animatronic& bonnie, const Animatronic& ch
     SDL_RenderFillRect(sdlRenderer, &box2);
     SDL_RenderFillRect(sdlRenderer, &box3);
 
+    // Multiple animatronics support
+    bool anyoneHere = false;
+    int animatronicCount = 0;
+    float startX = 280.0f;
+
     // Check voor Bonnie (zijn favorite plek!)
     if (isAnimatronicInRoom(BACKROOM, bonnie)) {
+        float bX = startX + (animatronicCount * 170);
+        anyoneHere = true;
+
         // BONNIE - lurking in shadows (detailed and scary)
-        // Body (purple)
         SDL_SetRenderDrawColor(sdlRenderer, 110, 60, 170, 255);
-        SDL_FRect bonnieBody = {360, 220, 100, 180};
+        SDL_FRect bonnieBody = {bX, 220, 90, 160};
         SDL_RenderFillRect(sdlRenderer, &bonnieBody);
 
-        // Head (larger, menacing)
         SDL_SetRenderDrawColor(sdlRenderer, 120, 70, 180, 255);
-        SDL_FRect bonnieHead = {370, 170, 80, 70};
+        SDL_FRect bonnieHead = {bX + 10, 170, 70, 65};
         SDL_RenderFillRect(sdlRenderer, &bonnieHead);
 
-        // ICONIC RABBIT EARS (tall and creepy)
+        // RABBIT EARS
         SDL_SetRenderDrawColor(sdlRenderer, 100, 50, 160, 255);
-        SDL_FRect ear1 = {378, 110, 22, 70};
-        SDL_FRect ear2 = {420, 110, 22, 70};
+        SDL_FRect ear1 = {bX + 18, 115, 20, 65};
+        SDL_FRect ear2 = {bX + 52, 115, 20, 65};
         SDL_RenderFillRect(sdlRenderer, &ear1);
         SDL_RenderFillRect(sdlRenderer, &ear2);
 
-        // Inner ears (darker pink)
+        // Inner ears
         SDL_SetRenderDrawColor(sdlRenderer, 160, 80, 120, 255);
-        SDL_FRect earInner1 = {382, 125, 14, 45};
-        SDL_FRect earInner2 = {424, 125, 14, 45};
+        SDL_FRect earInner1 = {bX + 21, 125, 14, 40};
+        SDL_FRect earInner2 = {bX + 55, 125, 14, 40};
         SDL_RenderFillRect(sdlRenderer, &earInner1);
         SDL_RenderFillRect(sdlRenderer, &earInner2);
 
-        // GLOWING RED EYES (menacing in darkness)
+        // GLOWING RED EYES
         SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
-        SDL_FRect eye1 = {385, 190, 18, 25};
-        SDL_FRect eye2 = {417, 190, 18, 25};
+        SDL_FRect eye1 = {bX + 25, 190, 16, 22};
+        SDL_FRect eye2 = {bX + 49, 190, 16, 22};
         SDL_RenderFillRect(sdlRenderer, &eye1);
         SDL_RenderFillRect(sdlRenderer, &eye2);
 
-        // Eye glow effect (horror atmosphere)
+        // Eye glow
         SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 120);
-        SDL_FRect glow1 = {380, 185, 28, 35};
-        SDL_FRect glow2 = {412, 185, 28, 35};
+        SDL_FRect glow1 = {bX + 21, 186, 24, 30};
+        SDL_FRect glow2 = {bX + 45, 186, 24, 30};
         SDL_RenderFillRect(sdlRenderer, &glow1);
         SDL_RenderFillRect(sdlRenderer, &glow2);
 
-        // Pupils (black, staring)
+        // Pupils
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-        SDL_FRect pupil1 = {390, 197, 8, 12};
-        SDL_FRect pupil2 = {422, 197, 8, 12};
+        SDL_FRect pupil1 = {bX + 29, 196, 8, 11};
+        SDL_FRect pupil2 = {bX + 53, 196, 8, 11};
         SDL_RenderFillRect(sdlRenderer, &pupil1);
         SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-        // Arms reaching forward
-        SDL_SetRenderDrawColor(sdlRenderer, 100, 50, 150, 255);
-        SDL_FRect arm1 = {340, 250, 25, 80};
-        SDL_FRect arm2 = {455, 250, 25, 80};
-        SDL_RenderFillRect(sdlRenderer, &arm1);
-        SDL_RenderFillRect(sdlRenderer, &arm2);
-
-        // Guitar silhouette (Bonnie's signature)
+        // Guitar
         SDL_SetRenderDrawColor(sdlRenderer, 180, 40, 40, 255);
-        SDL_FRect guitar = {345, 340, 30, 65};
+        SDL_FRect guitar = {bX - 8, 320, 25, 55};
         SDL_RenderFillRect(sdlRenderer, &guitar);
-        SDL_FRect guitarNeck = {355, 305, 10, 40};
-        SDL_RenderFillRect(sdlRenderer, &guitarNeck);
 
-        // Warning text (pulsing)
         if ((SDL_GetTicks() / 400) % 2) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
-            SDL_RenderDebugText(sdlRenderer, 330, 420, "!!! BONNIE LURKING !!!");
+            SDL_RenderDebugText(sdlRenderer, bX + 8, 390, "BONNIE!");
         }
-    } else {
+        animatronicCount++;
+    }
+
+    if (isAnimatronicInRoom(BACKROOM, chica)) {
+        float cX = startX + (animatronicCount * 170);
+        anyoneHere = true;
+
+        // CHICA - lurking
+        SDL_SetRenderDrawColor(sdlRenderer, 220, 200, 80, 255);
+        SDL_FRect chicaBody = {cX, 220, 90, 160};
+        SDL_RenderFillRect(sdlRenderer, &chicaBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 230, 210, 90, 255);
+        SDL_FRect chicaHead = {cX + 10, 170, 70, 65};
+        SDL_RenderFillRect(sdlRenderer, &chicaHead);
+
+        // BEAK
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
+        SDL_FRect beakTop = {cX + 33, 190, 24, 14};
+        SDL_FRect beakBottom = {cX + 33, 207, 24, 14};
+        SDL_RenderFillRect(sdlRenderer, &beakTop);
+        SDL_RenderFillRect(sdlRenderer, &beakBottom);
+
+        // EYES
+        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 200, 255);
+        SDL_FRect eye1 = {cX + 23, 185, 14, 20};
+        SDL_FRect eye2 = {cX + 53, 185, 14, 20};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        // Pupils
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+        SDL_FRect pupil1 = {cX + 27, 190, 6, 10};
+        SDL_FRect pupil2 = {cX + 57, 190, 6, 10};
+        SDL_RenderFillRect(sdlRenderer, &pupil1);
+        SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+        if ((SDL_GetTicks() / 400) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, cX + 8, 390, "CHICA!");
+        }
+        animatronicCount++;
+    }
+
+    if (isAnimatronicInRoom(BACKROOM, freddy)) {
+        float fX = startX + (animatronicCount * 170);
+        anyoneHere = true;
+
+        // FREDDY - lurking
+        SDL_SetRenderDrawColor(sdlRenderer, 140, 90, 50, 255);
+        SDL_FRect freddyBody = {fX, 220, 90, 160};
+        SDL_RenderFillRect(sdlRenderer, &freddyBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 150, 100, 60, 255);
+        SDL_FRect freddyHead = {fX + 10, 170, 70, 65};
+        SDL_RenderFillRect(sdlRenderer, &freddyHead);
+
+        // HAT
+        SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+        SDL_FRect hatTop = {fX + 8, 140, 74, 35};
+        SDL_FRect hatBrim = {fX + 3, 170, 84, 8};
+        SDL_RenderFillRect(sdlRenderer, &hatTop);
+        SDL_RenderFillRect(sdlRenderer, &hatBrim);
+
+        // EYES
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 255);
+        SDL_FRect eye1 = {fX + 25, 190, 14, 20};
+        SDL_FRect eye2 = {fX + 51, 190, 14, 20};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        // Eye glow
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 100);
+        SDL_FRect glow1 = {fX + 21, 186, 22, 28};
+        SDL_FRect glow2 = {fX + 47, 186, 22, 28};
+        SDL_RenderFillRect(sdlRenderer, &glow1);
+        SDL_RenderFillRect(sdlRenderer, &glow2);
+
+        // Pupils
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+        SDL_FRect pupil1 = {fX + 29, 195, 6, 10};
+        SDL_FRect pupil2 = {fX + 55, 195, 6, 10};
+        SDL_RenderFillRect(sdlRenderer, &pupil1);
+        SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+        if ((SDL_GetTicks() / 400) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, fX + 6, 390, "FREDDY!");
+        }
+        animatronicCount++;
+    }
+
+    if (!anyoneHere) {
         SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
         SDL_RenderDebugText(sdlRenderer, 340, 280, "EMPTY");
     }
@@ -1509,93 +1753,140 @@ void Renderer::drawKitchenView(const Animatronic& bonnie, const Animatronic& chi
     SDL_RenderFillRect(sdlRenderer, &cabinet1);
     SDL_RenderFillRect(sdlRenderer, &cabinet2);
 
-    // Chica's favoriete plek
-    if (isAnimatronicInRoom(KITCHEN, chica)) {
-        // CHICA - Full detailed scary chicken
-        // Body (yellow)
-        SDL_SetRenderDrawColor(sdlRenderer, 220, 200, 80, 255);
-        SDL_FRect chicaBody = {340, 220, 100, 180};
-        SDL_RenderFillRect(sdlRenderer, &chicaBody);
+    // Multiple animatronics support
+    bool anyoneHere = false;
+    int animatronicCount = 0;
+    float startX = 270.0f;
 
-        // Head (round chicken head)
-        SDL_SetRenderDrawColor(sdlRenderer, 230, 210, 90, 255);
-        SDL_FRect chicaHead = {350, 170, 80, 70};
-        SDL_RenderFillRect(sdlRenderer, &chicaHead);
+    if (isAnimatronicInRoom(KITCHEN, bonnie)) {
+        float bX = startX + (animatronicCount * 160);
+        anyoneHere = true;
 
-        // ORANGE BEAK (signature feature - menacing)
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
-        SDL_FRect beakTop = {380, 195, 40, 18};
-        SDL_FRect beakBottom = {380, 218, 40, 18};
-        SDL_RenderFillRect(sdlRenderer, &beakTop);
-        SDL_RenderFillRect(sdlRenderer, &beakBottom);
+        // BONNIE in kitchen
+        SDL_SetRenderDrawColor(sdlRenderer, 110, 60, 170, 255);
+        SDL_FRect bonnieBody = {bX, 210, 85, 150};
+        SDL_RenderFillRect(sdlRenderer, &bonnieBody);
 
-        // Beak detail line
-        SDL_SetRenderDrawColor(sdlRenderer, 200, 100, 0, 255);
-        SDL_RenderLine(sdlRenderer, 380, 213, 420, 213);
+        SDL_SetRenderDrawColor(sdlRenderer, 120, 70, 180, 255);
+        SDL_FRect bonnieHead = {bX + 8, 165, 70, 60};
+        SDL_RenderFillRect(sdlRenderer, &bonnieHead);
 
-        // MAGENTA EYES (unsettling stare)
-        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 200, 255);
-        SDL_FRect eye1 = {360, 185, 18, 25};
-        SDL_FRect eye2 = {402, 185, 18, 25};
+        // Ears
+        SDL_SetRenderDrawColor(sdlRenderer, 100, 50, 160, 255);
+        SDL_FRect ear1 = {bX + 15, 125, 18, 50};
+        SDL_FRect ear2 = {bX + 47, 125, 18, 50};
+        SDL_RenderFillRect(sdlRenderer, &ear1);
+        SDL_RenderFillRect(sdlRenderer, &ear2);
+
+        // Eyes
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
+        SDL_FRect eye1 = {bX + 22, 182, 14, 18};
+        SDL_FRect eye2 = {bX + 44, 182, 14, 18};
         SDL_RenderFillRect(sdlRenderer, &eye1);
         SDL_RenderFillRect(sdlRenderer, &eye2);
 
-        // Pupils (black, watching)
+        if ((SDL_GetTicks() / 350) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, bX + 5, 370, "BONNIE");
+        }
+        animatronicCount++;
+    }
+
+    if (isAnimatronicInRoom(KITCHEN, chica)) {
+        float cX = startX + (animatronicCount * 160);
+        anyoneHere = true;
+
+        // CHICA - Full detailed scary chicken
+        SDL_SetRenderDrawColor(sdlRenderer, 220, 200, 80, 255);
+        SDL_FRect chicaBody = {cX, 210, 85, 150};
+        SDL_RenderFillRect(sdlRenderer, &chicaBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 230, 210, 90, 255);
+        SDL_FRect chicaHead = {cX + 8, 165, 70, 60};
+        SDL_RenderFillRect(sdlRenderer, &chicaHead);
+
+        // BEAK
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
+        SDL_FRect beakTop = {cX + 30, 182, 28, 14};
+        SDL_FRect beakBottom = {cX + 30, 199, 28, 14};
+        SDL_RenderFillRect(sdlRenderer, &beakTop);
+        SDL_RenderFillRect(sdlRenderer, &beakBottom);
+
+        // EYES
+        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 200, 255);
+        SDL_FRect eye1 = {cX + 20, 177, 14, 18};
+        SDL_FRect eye2 = {cX + 46, 177, 14, 18};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        // Pupils
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-        SDL_FRect pupil1 = {365, 192, 8, 12};
-        SDL_FRect pupil2 = {407, 192, 8, 12};
+        SDL_FRect pupil1 = {cX + 24, 182, 6, 9};
+        SDL_FRect pupil2 = {cX + 50, 182, 6, 9};
         SDL_RenderFillRect(sdlRenderer, &pupil1);
         SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-        // White BIB with "LET'S EAT"
+        // Bib
         SDL_SetRenderDrawColor(sdlRenderer, 230, 230, 230, 255);
-        SDL_FRect bib = {370, 240, 60, 40};
+        SDL_FRect bib = {cX + 28, 225, 30, 22};
         SDL_RenderFillRect(sdlRenderer, &bib);
         SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 0, 255);
-        SDL_RenderDebugText(sdlRenderer, 375, 252, "LET'S");
-        SDL_RenderDebugText(sdlRenderer, 378, 265, "EAT!");
+        SDL_RenderDebugText(sdlRenderer, cX + 30, 232, "EAT");
 
-        // Arms reaching out
-        SDL_SetRenderDrawColor(sdlRenderer, 210, 190, 70, 255);
-        SDL_FRect arm1 = {315, 250, 30, 90};
-        SDL_FRect arm2 = {435, 250, 30, 90};
-        SDL_RenderFillRect(sdlRenderer, &arm1);
-        SDL_RenderFillRect(sdlRenderer, &arm2);
-
-        // CUPCAKE held menacingly
+        // Cupcake
         SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 150, 255);
-        SDL_FRect cupcake = {460, 320, 35, 40};
+        SDL_FRect cupcake = {cX + 80, 285, 20, 25};
         SDL_RenderFillRect(sdlRenderer, &cupcake);
-        // Frosting
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 100, 255);
-        SDL_FRect frosting = {460, 315, 35, 12};
-        SDL_RenderFillRect(sdlRenderer, &frosting);
-        // Evil cupcake eyes
-        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-        SDL_FRect cupcakeEye1 = {467, 328, 5, 8};
-        SDL_FRect cupcakeEye2 = {483, 328, 5, 8};
-        SDL_RenderFillRect(sdlRenderer, &cupcakeEye1);
-        SDL_RenderFillRect(sdlRenderer, &cupcakeEye2);
 
-        // Pizza slice on counter (being "prepared")
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 200, 100, 255);
-        SDL_FRect pizza = {150, 360, 50, 50};
-        SDL_RenderFillRect(sdlRenderer, &pizza);
-        // Pepperoni
-        SDL_SetRenderDrawColor(sdlRenderer, 180, 50, 50, 255);
-        SDL_FRect pep1 = {160, 370, 12, 12};
-        SDL_FRect pep2 = {180, 375, 12, 12};
-        SDL_FRect pep3 = {168, 388, 12, 12};
-        SDL_RenderFillRect(sdlRenderer, &pep1);
-        SDL_RenderFillRect(sdlRenderer, &pep2);
-        SDL_RenderFillRect(sdlRenderer, &pep3);
-
-        // Pulsing warning
         if ((SDL_GetTicks() / 350) % 2) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
-            SDL_RenderDebugText(sdlRenderer, 280, 420, "!!! CHICA IN KITCHEN !!!");
+            SDL_RenderDebugText(sdlRenderer, cX + 6, 370, "CHICA");
         }
-    } else {
+        animatronicCount++;
+    }
+
+    if (isAnimatronicInRoom(KITCHEN, freddy)) {
+        float fX = startX + (animatronicCount * 160);
+        anyoneHere = true;
+
+        // FREDDY in kitchen
+        SDL_SetRenderDrawColor(sdlRenderer, 140, 90, 50, 255);
+        SDL_FRect freddyBody = {fX, 210, 85, 150};
+        SDL_RenderFillRect(sdlRenderer, &freddyBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 150, 100, 60, 255);
+        SDL_FRect freddyHead = {fX + 8, 165, 70, 60};
+        SDL_RenderFillRect(sdlRenderer, &freddyHead);
+
+        // Hat
+        SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+        SDL_FRect hatTop = {fX + 6, 138, 74, 32};
+        SDL_FRect hatBrim = {fX + 1, 165, 84, 8};
+        SDL_RenderFillRect(sdlRenderer, &hatTop);
+        SDL_RenderFillRect(sdlRenderer, &hatBrim);
+
+        // Eyes
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 255);
+        SDL_FRect eye1 = {fX + 22, 182, 14, 18};
+        SDL_FRect eye2 = {fX + 44, 182, 14, 18};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        // Pupils
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+        SDL_FRect pupil1 = {fX + 26, 187, 6, 9};
+        SDL_FRect pupil2 = {fX + 48, 187, 6, 9};
+        SDL_RenderFillRect(sdlRenderer, &pupil1);
+        SDL_RenderFillRect(sdlRenderer, &pupil2);
+
+        if ((SDL_GetTicks() / 350) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, fX + 3, 370, "FREDDY");
+        }
+        animatronicCount++;
+    }
+
+    if (!anyoneHere) {
         SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
         SDL_RenderDebugText(sdlRenderer, 340, 280, "EMPTY");
     }
@@ -1625,94 +1916,152 @@ void Renderer::drawRestroomView(const Animatronic& bonnie, const Animatronic& ch
     SDL_RenderFillRect(sdlRenderer, &toilet2);
     SDL_RenderFillRect(sdlRenderer, &toilet3);
 
-    // Freddy komt vaak hier
+    // Multiple animatronics support
+    bool anyoneHere = false;
+    int animatronicCount = 0;
+    float startX = 270.0f;
+
+    if (isAnimatronicInRoom(RESTROOM, bonnie)) {
+        float bX = startX + (animatronicCount * 160);
+        anyoneHere = true;
+
+        // BONNIE in restroom
+        SDL_SetRenderDrawColor(sdlRenderer, 110, 60, 170, 255);
+        SDL_FRect bonnieBody = {bX, 210, 85, 150};
+        SDL_RenderFillRect(sdlRenderer, &bonnieBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 120, 70, 180, 255);
+        SDL_FRect bonnieHead = {bX + 8, 155, 70, 70};
+        SDL_RenderFillRect(sdlRenderer, &bonnieHead);
+
+        // Ears
+        SDL_SetRenderDrawColor(sdlRenderer, 100, 50, 160, 255);
+        SDL_FRect ear1 = {bX + 15, 110, 18, 55};
+        SDL_FRect ear2 = {bX + 47, 110, 18, 55};
+        SDL_RenderFillRect(sdlRenderer, &ear1);
+        SDL_RenderFillRect(sdlRenderer, &ear2);
+
+        // Eyes
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
+        SDL_FRect eye1 = {bX + 22, 177, 15, 20};
+        SDL_FRect eye2 = {bX + 43, 177, 15, 20};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        // Eye glow
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 100);
+        SDL_FRect glow1 = {bX + 18, 173, 23, 28};
+        SDL_FRect glow2 = {bX + 39, 173, 23, 28};
+        SDL_RenderFillRect(sdlRenderer, &glow1);
+        SDL_RenderFillRect(sdlRenderer, &glow2);
+
+        if ((SDL_GetTicks() / 400) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, bX + 5, 370, "BONNIE");
+        }
+        animatronicCount++;
+    }
+
+    if (isAnimatronicInRoom(RESTROOM, chica)) {
+        float cX = startX + (animatronicCount * 160);
+        anyoneHere = true;
+
+        // CHICA in restroom
+        SDL_SetRenderDrawColor(sdlRenderer, 220, 200, 80, 255);
+        SDL_FRect chicaBody = {cX, 210, 85, 150};
+        SDL_RenderFillRect(sdlRenderer, &chicaBody);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 230, 210, 90, 255);
+        SDL_FRect chicaHead = {cX + 8, 155, 70, 70};
+        SDL_RenderFillRect(sdlRenderer, &chicaHead);
+
+        // Beak
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
+        SDL_FRect beakTop = {cX + 30, 177, 24, 14};
+        SDL_FRect beakBottom = {cX + 30, 194, 24, 14};
+        SDL_RenderFillRect(sdlRenderer, &beakTop);
+        SDL_RenderFillRect(sdlRenderer, &beakBottom);
+
+        // Eyes
+        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 200, 255);
+        SDL_FRect eye1 = {cX + 20, 172, 14, 18};
+        SDL_FRect eye2 = {cX + 46, 172, 14, 18};
+        SDL_RenderFillRect(sdlRenderer, &eye1);
+        SDL_RenderFillRect(sdlRenderer, &eye2);
+
+        if ((SDL_GetTicks() / 400) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, cX + 6, 370, "CHICA");
+        }
+        animatronicCount++;
+    }
+
     if (isAnimatronicInRoom(RESTROOM, freddy)) {
+        float fX = startX + (animatronicCount * 160);
+        anyoneHere = true;
+
         // FREDDY - Full detailed scary bear with hat
-        // Body (brown)
         SDL_SetRenderDrawColor(sdlRenderer, 140, 90, 50, 255);
-        SDL_FRect freddyBody = {360, 220, 100, 180};
+        SDL_FRect freddyBody = {fX, 210, 85, 150};
         SDL_RenderFillRect(sdlRenderer, &freddyBody);
 
-        // Head (round bear head)
         SDL_SetRenderDrawColor(sdlRenderer, 150, 100, 60, 255);
-        SDL_FRect freddyHead = {370, 160, 80, 75};
+        SDL_FRect freddyHead = {fX + 8, 155, 70, 70};
         SDL_RenderFillRect(sdlRenderer, &freddyHead);
 
         // Round bear ears
         SDL_SetRenderDrawColor(sdlRenderer, 130, 80, 45, 255);
-        SDL_FRect ear1 = {365, 150, 30, 30};
-        SDL_FRect ear2 = {425, 150, 30, 30};
+        SDL_FRect ear1 = {fX + 6, 147, 24, 24};
+        SDL_FRect ear2 = {fX + 55, 147, 24, 24};
         SDL_RenderFillRect(sdlRenderer, &ear1);
         SDL_RenderFillRect(sdlRenderer, &ear2);
 
-        // ICONIC TOP HAT (black)
+        // TOP HAT
         SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
-        SDL_FRect hatTop = {365, 110, 90, 45};
-        SDL_FRect hatBrim = {355, 150, 110, 10};
+        SDL_FRect hatTop = {fX + 6, 118, 74, 35};
+        SDL_FRect hatBrim = {fX + 1, 147, 84, 8};
         SDL_RenderFillRect(sdlRenderer, &hatTop);
         SDL_RenderFillRect(sdlRenderer, &hatBrim);
 
-        // Hat band (red)
+        // Hat band
         SDL_SetRenderDrawColor(sdlRenderer, 200, 40, 40, 255);
-        SDL_FRect hatBand = {365, 146, 90, 8};
+        SDL_FRect hatBand = {fX + 6, 144, 74, 6};
         SDL_RenderFillRect(sdlRenderer, &hatBand);
 
-        // GLOWING CYAN EYES (Freddy's signature)
+        // CYAN EYES
         SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 255);
-        SDL_FRect eye1 = {385, 185, 18, 25};
-        SDL_FRect eye2 = {417, 185, 18, 25};
+        SDL_FRect eye1 = {fX + 22, 177, 15, 20};
+        SDL_FRect eye2 = {fX + 43, 177, 15, 20};
         SDL_RenderFillRect(sdlRenderer, &eye1);
         SDL_RenderFillRect(sdlRenderer, &eye2);
 
-        // Eye glow effect
+        // Eye glow
         SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 255, 100);
-        SDL_FRect glow1 = {380, 180, 28, 35};
-        SDL_FRect glow2 = {412, 180, 28, 35};
+        SDL_FRect glow1 = {fX + 18, 173, 23, 28};
+        SDL_FRect glow2 = {fX + 39, 173, 23, 28};
         SDL_RenderFillRect(sdlRenderer, &glow1);
         SDL_RenderFillRect(sdlRenderer, &glow2);
 
-        // Pupils (black, watching)
+        // Pupils
         SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
-        SDL_FRect pupil1 = {390, 192, 8, 12};
-        SDL_FRect pupil2 = {422, 192, 8, 12};
+        SDL_FRect pupil1 = {fX + 26, 182, 7, 10};
+        SDL_FRect pupil2 = {fX + 47, 182, 7, 10};
         SDL_RenderFillRect(sdlRenderer, &pupil1);
         SDL_RenderFillRect(sdlRenderer, &pupil2);
 
-        // Snout/nose area (lighter brown)
-        SDL_SetRenderDrawColor(sdlRenderer, 170, 120, 70, 255);
-        SDL_FRect snout = {385, 205, 50, 25};
-        SDL_RenderFillRect(sdlRenderer, &snout);
-
-        // Black nose
+        // Bow tie
         SDL_SetRenderDrawColor(sdlRenderer, 30, 30, 30, 255);
-        SDL_FRect nose = {400, 215, 20, 12};
-        SDL_RenderFillRect(sdlRenderer, &nose);
-
-        // BOW TIE (black, formal but creepy)
-        SDL_SetRenderDrawColor(sdlRenderer, 30, 30, 30, 255);
-        SDL_FRect bowtie = {390, 235, 40, 18};
+        SDL_FRect bowtie = {fX + 30, 225, 26, 14};
         SDL_RenderFillRect(sdlRenderer, &bowtie);
 
-        // Arms
-        SDL_SetRenderDrawColor(sdlRenderer, 130, 80, 45, 255);
-        SDL_FRect arm1 = {335, 250, 30, 90};
-        SDL_FRect arm2 = {455, 250, 30, 90};
-        SDL_RenderFillRect(sdlRenderer, &arm1);
-        SDL_RenderFillRect(sdlRenderer, &arm2);
-
-        // Microphone (silver)
-        SDL_SetRenderDrawColor(sdlRenderer, 180, 180, 180, 255);
-        SDL_FRect mic = {325, 280, 15, 60};
-        SDL_RenderFillRect(sdlRenderer, &mic);
-        SDL_FRect micHead = {320, 275, 25, 15};
-        SDL_RenderFillRect(sdlRenderer, &micHead);
-
-        // Pulsing warning
         if ((SDL_GetTicks() / 400) % 2) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 140, 0, 255);
-            SDL_RenderDebugText(sdlRenderer, 300, 420, "!!! FREDDY DETECTED !!!");
+            SDL_RenderDebugText(sdlRenderer, fX + 3, 370, "FREDDY");
         }
-    } else {
+        animatronicCount++;
+    }
+
+    if (!anyoneHere) {
         SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
         SDL_RenderDebugText(sdlRenderer, 340, 280, "CLEAR");
     }
