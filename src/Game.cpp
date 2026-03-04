@@ -49,6 +49,44 @@ void Game::check_input() {
                 case SDLK_ESCAPE:
                     this->running = false;
                     break;
+
+                // === CAMERA SWITCHING (1-9) ===
+                case SDLK_1:
+                    office.currentCamera = SHOW_STAGE;
+                    office.cameraActive = true; // Activeer camera's automatisch
+                    break;
+                case SDLK_2:
+                    office.currentCamera = DINING_HALL;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_3:
+                    office.currentCamera = BACKROOM;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_4:
+                    office.currentCamera = KITCHEN;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_5:
+                    office.currentCamera = RESTROOM;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_6:
+                    office.currentCamera = LEFT_HALLWAY;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_7:
+                    office.currentCamera = RIGHT_HALLWAY;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_8:
+                    office.currentCamera = LEFT_OFFICE;
+                    office.cameraActive = true;
+                    break;
+                case SDLK_9:
+                    office.currentCamera = RIGHT_OFFICE;
+                    office.cameraActive = true;
+                    break;
             }
         }
     }

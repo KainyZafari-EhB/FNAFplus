@@ -17,7 +17,7 @@ public:
     float usagePerDevice = 0.25f;   // Hoeveel extra stroom elk apparaat kost
 
     void stroomUitgevallen();
-    Room currentCamera;
+    Room currentCamera = SHOW_STAGE; // Default camera
 };
 
 

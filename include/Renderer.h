@@ -26,6 +26,9 @@ public:
     void drawCameraMap(Room activeCamera, const Animatronic &bonnie, const Animatronic &chica,
                        const Animatronic &freddy);
 
+    void drawCameraView(Room camera, const Animatronic &bonnie, const Animatronic &chica,
+                        const Animatronic &freddy);
+
 private:
     SDL_Window* window = nullptr;
     SDL_Renderer* sdlRenderer = nullptr;
@@ -36,6 +39,17 @@ private:
 
     void drawPowerBar(float powerLevel);
     void drawDoorStatus(bool left, bool right);
+
+    // Camera view rendering functions (one for each room)
+    void drawShowStageView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawDiningHallView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawBackroomView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawKitchenView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawRestroomView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawLeftHallwayView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawRightHallwayView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawLeftDoorView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
+    void drawRightDoorView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
 };
 
 #endif
