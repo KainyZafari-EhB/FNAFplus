@@ -568,62 +568,232 @@ const char* getRoomName(Room room) {
 }
 
 void Renderer::drawCameraMap(Room activeCamera, const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy) {
-    // Definieer de positie en grootte van elke kamer op de map
-    // (Dit zijn X, Y, Breedte, Hoogte op je 800x600 scherm)
+    // Definieer de positie en grootte van elke kamer op basis van AFSTAND TOT OFFICE
+    // Layout: Office onderaan, dichtstbijzijnde kamers direct erboven, verste kamers bovenaan
     std::map<Room, SDL_FRect> roomLayout = {
-        {SHOW_STAGE,    {100, 100, 150, 80}},
-        {DINING_HALL,   {280, 100, 150, 80}},
-        {BACKROOM,      {100, 200, 150, 80}},
-        {KITCHEN,       {280, 200, 150, 80}},
-        {RESTROOM,      {460, 200, 150, 80}},
-        {LEFT_HALLWAY,  {100, 300, 150, 80}},
-        {RIGHT_HALLWAY, {460, 300, 150, 80}},
-        {LEFT_OFFICE,   {100, 400, 150, 80}}, // Kantoor is niet op map, maar voor debug
-        {RIGHT_OFFICE,  {460, 400, 150, 80}}  // Kantoor is niet op map, maar voor debug
+        // VERST VAN OFFICE (bovenaan) - Startpunten
+        {SHOW_STAGE,    {230, 80, 130, 55}},      // Bovenaan centraal - START
+
+        // GEMIDDELDE AFSTAND (midden) - Tweede ring
+        {DINING_HALL,   {230, 155, 130, 55}},     // Direct onder Show Stage
+        {BACKROOM,      {70, 155, 110, 55}},      // Links van Dining Hall
+        {KITCHEN,       {390, 155, 110, 55}},     // Rechts van Dining Hall
+        {RESTROOM,      {520, 155, 110, 55}},     // Ver rechts van Dining Hall
+
+        // DICHTBIJ OFFICE (derde ring) - Gangen
+        {LEFT_HALLWAY,  {90, 240, 110, 55}},      // Links gang - dichtbij
+        {RIGHT_HALLWAY, {410, 240, 110, 55}},     // Rechts gang - dichtbij
+
+        // VOOR DE DEUR (onderste ring) - Gevaarzone!
+        {LEFT_OFFICE,   {100, 325, 105, 60}},     // Linker deur - ZEER DICHTBIJ
+        {RIGHT_OFFICE,  {405, 325, 105, 60}}      // Rechter deur - ZEER DICHTBIJ
     };
 
+    // === TEKEN VERBINDINGSLIJNEN EERST (toon de routes) ===
+    SDL_SetRenderDrawColor(sdlRenderer, 80, 80, 80, 255);
+
+    // Van Show Stage naar Dining Hall (verticaal naar beneden)
+    SDL_RenderLine(sdlRenderer, 295, 135, 295, 155);
+
+    // Van Dining Hall naar de drie zijkamers
+    SDL_RenderLine(sdlRenderer, 230, 182, 180, 182);  // Naar Backroom
+    SDL_RenderLine(sdlRenderer, 360, 182, 445, 182);  // Naar Kitchen
+    SDL_RenderLine(sdlRenderer, 360, 182, 575, 182);  // Naar Restroom
+
+    // Van Backroom naar Left Hallway (verticaal)
+    SDL_RenderLine(sdlRenderer, 125, 210, 145, 240);
+
+    // Van Kitchen naar Right Hallway (verticaal)
+    SDL_RenderLine(sdlRenderer, 445, 210, 465, 240);
+
+    // Van Restroom naar Right Hallway (diagonaal)
+    SDL_RenderLine(sdlRenderer, 575, 210, 520, 240);
+
+    // Van Left Hallway naar Left Office (verticaal)
+    SDL_RenderLine(sdlRenderer, 145, 295, 152, 325);
+
+    // Van Right Hallway naar Right Office (verticaal)
+    SDL_RenderLine(sdlRenderer, 465, 295, 458, 325);
+
+    // Van beide deuren naar het centrale Office
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 50, 50, 255); // Rood voor gevaar
+    SDL_RenderLine(sdlRenderer, 205, 385, 255, 425);  // Left door naar office
+    SDL_RenderLine(sdlRenderer, 405, 385, 355, 425);  // Right door naar office
+
+    // === TEKEN JOUW OFFICE ONDERAAN (DOEL VAN ANIMATRONICS) ===
+    SDL_FRect officeSpace = {255, 425, 100, 70}; // Onderaan centraal
+    SDL_SetRenderDrawColor(sdlRenderer, 60, 80, 120, 255); // Blauwe tint
+    SDL_RenderFillRect(sdlRenderer, &officeSpace);
+
+    // Dikke randen voor nadruk (3 lagen)
+    SDL_SetRenderDrawColor(sdlRenderer, 100, 140, 200, 255);
+    for (int i = 0; i < 3; i++) {
+        SDL_FRect outline = {253.0f - i, 423.0f - i, 104.0f + (i*2), 74.0f + (i*2)};
+        SDL_RenderRect(sdlRenderer, &outline);
+    }
+
+    // Labels
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+    SDL_RenderDebugText(sdlRenderer, 270, 440, "YOUR");
+    SDL_RenderDebugText(sdlRenderer, 265, 460, "OFFICE");
+
+    // "YOU ARE HERE" marker
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+    SDL_FRect playerMarker = {298, 475, 14, 14};
+    SDL_RenderFillRect(sdlRenderer, &playerMarker);
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+    SDL_RenderDebugText(sdlRenderer, 302, 477, "X");
+
+    // === TEKEN ALLE KAMERS ===
     for (auto const& [room, rect] : roomLayout) {
-        // 1. Teken de kamer zelf
+        // Kleur bepalen op basis van type/status
         if (room == activeCamera) {
-            SDL_SetRenderDrawColor(sdlRenderer, 0, 150, 0, 255); // Actieve camera (Groen)
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 0, 255); // Actieve camera (Heldergroen)
+        } else if (room == LEFT_OFFICE || room == RIGHT_OFFICE) {
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 30, 30, 255); // Deurposities (Donkerrood!)
+        } else if (room == LEFT_HALLWAY || room == RIGHT_HALLWAY) {
+            SDL_SetRenderDrawColor(sdlRenderer, 80, 60, 30, 255); // Gangen (Oranje-bruin)
+        } else if (room == SHOW_STAGE) {
+            SDL_SetRenderDrawColor(sdlRenderer, 60, 50, 80, 255); // Show Stage (Paars tint)
         } else {
-            SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 255); // Niet-actieve kamer (Donkergrijs)
+            SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 255); // Normale kamers (Grijs)
         }
         SDL_RenderFillRect(sdlRenderer, &rect);
 
-        // 2. Teken een rand
-        SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255); // Lichtgrijze rand
+        // Rand
+        SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
         SDL_RenderRect(sdlRenderer, &rect);
 
-        // 3. Teken de kamer naam
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255); // Wit voor tekst
-        const char* roomName = getRoomName(room);
-        SDL_RenderDebugText(sdlRenderer, rect.x + 5, rect.y + 5, roomName);
+        // Kamer naam met custom formatting
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
 
-        // 4. Teken de animatronics
+        if (room == LEFT_OFFICE) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 12, "LEFT");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 28, "DOOR");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, rect.x + 8, rect.y + 5, "!!!");
+        } else if (room == RIGHT_OFFICE) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 15, rect.y + 12, "RIGHT");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 28, "DOOR");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, rect.x + 8, rect.y + 5, "!!!");
+        } else if (room == SHOW_STAGE) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 25, rect.y + 12, "SHOW");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 28, "STAGE");
+        } else if (room == DINING_HALL) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 12, "DINING");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 25, rect.y + 28, "HALL");
+        } else if (room == LEFT_HALLWAY) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 25, rect.y + 12, "LEFT");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 28, "HALL");
+        } else if (room == RIGHT_HALLWAY) {
+            SDL_RenderDebugText(sdlRenderer, rect.x + 20, rect.y + 12, "RIGHT");
+            SDL_RenderDebugText(sdlRenderer, rect.x + 25, rect.y + 28, "HALL");
+        } else {
+            const char* roomName = getRoomName(room);
+            SDL_RenderDebugText(sdlRenderer, rect.x + 15, rect.y + 20, roomName);
+        }
+
+        // === TEKEN ANIMATRONICS MET LABELS ===
         SDL_FRect botRect;
-        botRect.w = 10; botRect.h = 10; // Klein vierkantje voor de robot
+        botRect.w = 16; botRect.h = 16;
 
-        // Bonnie's positie
+        // Bonnie (Magenta/Paars)
         if (bonnie.getCurrentRoom() == room) {
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255); // Magenta voor Bonnie
-            botRect.x = rect.x + (rect.w / 2) - 5; // Midden van de kamer
-            botRect.y = rect.y + (rect.h / 2) - 5;
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
+            botRect.x = rect.x + (rect.w / 2) - 8;
+            botRect.y = rect.y + (rect.h / 2) - 8;
             SDL_RenderFillRect(sdlRenderer, &botRect);
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, botRect.x + 4, botRect.y + 3, "B");
         }
-        // Chica's positie
+
+        // Chica (Geel)
         if (chica.getCurrentRoom() == room) {
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255); // Geel voor Chica
-            botRect.x = rect.x + (rect.w / 2) + 5; // Iets verschoven
-            botRect.y = rect.y + (rect.h / 2) + 5;
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            botRect.x = rect.x + (rect.w / 2) + 10;
+            botRect.y = rect.y + (rect.h / 2) + 10;
             SDL_RenderFillRect(sdlRenderer, &botRect);
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, botRect.x + 4, botRect.y + 3, "C");
         }
-        // Freddy's positie
+
+        // Freddy (Oranje)
         if (freddy.getCurrentRoom() == room) {
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255); // Oranje voor Freddy
-            botRect.x = rect.x + (rect.w / 2) - 15; // Nog meer verschoven
-            botRect.y = rect.y + (rect.h / 2) - 15;
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255);
+            botRect.x = rect.x + (rect.w / 2) - 20;
+            botRect.y = rect.y + (rect.h / 2) - 20;
             SDL_RenderFillRect(sdlRenderer, &botRect);
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, botRect.x + 4, botRect.y + 3, "F");
         }
     }
+
+    // === WAARSCHUWINGSSYSTEEM ===
+    bool dangerAtDoor = false;
+    std::string warningText = "";
+
+    if (bonnie.getCurrentRoom() == LEFT_OFFICE) {
+        dangerAtDoor = true;
+        warningText += "BONNIE AT LEFT DOOR! ";
+    }
+    if (chica.getCurrentRoom() == RIGHT_OFFICE) {
+        dangerAtDoor = true;
+        warningText += "CHICA AT RIGHT DOOR! ";
+    }
+    if (freddy.getCurrentRoom() == RIGHT_OFFICE) {
+        dangerAtDoor = true;
+        warningText += "FREDDY AT RIGHT DOOR! ";
+    }
+
+    if (dangerAtDoor) {
+        // Knipperende rode waarschuwing
+        int blinkState = (SDL_GetTicks() / 250) % 2;
+        if (blinkState) {
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 200);
+            SDL_FRect alertBox = {40, 515, 520, 35};
+            SDL_RenderFillRect(sdlRenderer, &alertBox);
+
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, 50, 522, "!!! DANGER !!!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+            SDL_RenderDebugText(sdlRenderer, 50, 535, warningText.c_str());
+        }
+    }
+
+    // === LEGENDA (rechtsboven) ===
+    SDL_SetRenderDrawColor(sdlRenderer, 30, 30, 40, 220);
+    SDL_FRect legendBG = {615, 85, 175, 110};
+    SDL_RenderFillRect(sdlRenderer, &legendBG);
+    SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
+    SDL_RenderRect(sdlRenderer, &legendBG);
+
+    SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
+    SDL_RenderDebugText(sdlRenderer, 625, 92, "ANIMATRONICS:");
+
+    // Bonnie
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
+    SDL_FRect bonnieBox = {625, 112, 14, 14};
+    SDL_RenderFillRect(sdlRenderer, &bonnieBox);
+    SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
+    SDL_RenderDebugText(sdlRenderer, 645, 110, "= Bonnie");
+
+    // Chica
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+    SDL_FRect chicaBox = {625, 137, 14, 14};
+    SDL_RenderFillRect(sdlRenderer, &chicaBox);
+    SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
+    SDL_RenderDebugText(sdlRenderer, 645, 135, "= Chica");
+
+    // Freddy
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255);
+    SDL_FRect freddyBox = {625, 162, 14, 14};
+    SDL_RenderFillRect(sdlRenderer, &freddyBox);
+    SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
+    SDL_RenderDebugText(sdlRenderer, 645, 160, "= Freddy");
+
+    // Distance indicator
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+    SDL_RenderDebugText(sdlRenderer, 620, 210, "Top = Far");
+    SDL_RenderDebugText(sdlRenderer, 620, 225, "Bottom = Near");
 }

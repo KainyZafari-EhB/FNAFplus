@@ -20,30 +20,30 @@ void Animatronic::move(Office& office) {
     // std::cout << name << " gooit " << kans << " tegen AI " << aiLevel << std::endl;
 
     if (kans <= aiLevel) {
-        // CHECK 1: Staat de robot al in de gang? Dan is de volgende stap het kantoor.
-        if (currentRoom == LEFT_HALLWAY) {
+        // CHECK 1: Staat de robot al voor de deur van het kantoor? Dan proberen ze binnen te komen!
+        if (currentRoom == LEFT_OFFICE) {
             if (office.leftDoorClosed) {
-                currentRoom = DINING_HALL; // Teruggejaagd
-                std::cout << "[BEWEGING] " << name << " werd tegengehouden door de DEUR!" << std::endl;
+                currentRoom = DINING_HALL; // Teruggejaagd door de dichte deur
+                std::cout << "[BEWEGING] " << name << " werd tegengehouden door de LINKER DEUR!" << std::endl;
             } else {
-                currentRoom = JUMPSCARE;   // Binnengeglipt
-                std::cout << "[GEVAAR] " << name << " IS BINNEN! JUMPSCARE!" << std::endl;
+                currentRoom = JUMPSCARE;   // Deur is open - ze komen binnen!
+                std::cout << "[GEVAAR] " << name << " IS BINNEN VIA LINKER DEUR! JUMPSCARE!" << std::endl;
             }
-            return; // Belangrijk: stop hier zodat moveToNextRoom niet ook nog wordt aangeroepen
+            return; // Stop hier
         }
 
-        if (currentRoom == RIGHT_HALLWAY) {
+        if (currentRoom == RIGHT_OFFICE) {
             if (office.rightDoorClosed) {
-                currentRoom = DINING_HALL;
-                std::cout << "[BEWEGING] " << name << " werd tegengehouden door de DEUR!" << std::endl;
+                currentRoom = DINING_HALL; // Teruggejaagd door de dichte deur
+                std::cout << "[BEWEGING] " << name << " werd tegengehouden door de RECHTER DEUR!" << std::endl;
             } else {
-                currentRoom = JUMPSCARE;
-                std::cout << "[GEVAAR] " << name << " IS BINNEN! JUMPSCARE!" << std::endl;
+                currentRoom = JUMPSCARE;   // Deur is open - ze komen binnen!
+                std::cout << "[GEVAAR] " << name << " IS BINNEN VIA RECHTER DEUR! JUMPSCARE!" << std::endl;
             }
-            return;
+            return; // Stop hier
         }
 
-        // CHECK 2: Als ze niet in de gang staan, verplaats ze dan gewoon naar de volgende kamer
+        // CHECK 2: Als ze niet voor de deur staan, verplaats ze naar de volgende kamer
         moveToNextRoom(office);
         std::cout << "[BEWEGING] " << name << " is nu in kamer: " << currentRoom << std::endl;
     }
@@ -54,17 +54,18 @@ void Animatronic::moveToNextRoom(Office& office) {
         if (currentRoom == SHOW_STAGE) currentRoom = DINING_HALL;
         else if (currentRoom == DINING_HALL) currentRoom = BACKROOM;
         else if (currentRoom == BACKROOM) currentRoom = LEFT_HALLWAY;
-        // Bonnie gaat hier nooit naar LEFT_OFFICE,
-        // dat doen we in de JUMPSCARE check in move()
+        else if (currentRoom == LEFT_HALLWAY) currentRoom = LEFT_OFFICE; // Naar linker kantoor deur!
     }
     else if (name == "Chica") {
         if (currentRoom == SHOW_STAGE) currentRoom = DINING_HALL;
         else if (currentRoom == DINING_HALL) currentRoom = KITCHEN;
         else if (currentRoom == KITCHEN) currentRoom = RIGHT_HALLWAY;
+        else if (currentRoom == RIGHT_HALLWAY) currentRoom = RIGHT_OFFICE; // Naar rechter kantoor deur!
     }
     else if (name == "Freddy") {
         if (currentRoom == SHOW_STAGE) currentRoom = DINING_HALL;
         else if (currentRoom == DINING_HALL) currentRoom = RESTROOM;
         else if (currentRoom == RESTROOM) currentRoom = RIGHT_HALLWAY;
+        else if (currentRoom == RIGHT_HALLWAY) currentRoom = RIGHT_OFFICE; // Naar rechter kantoor deur!
     }
 }
