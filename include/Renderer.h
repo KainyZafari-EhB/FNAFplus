@@ -40,6 +40,11 @@ private:
     void drawPowerBar(float powerLevel);
     void drawDoorStatus(bool left, bool right);
 
+    // Lightweight post-processing and UI helpers
+    void drawVignette(Uint8 alpha);
+    void drawLowPowerTint(float powerLevel);
+    void drawUiPanel(const SDL_FRect& rect, Uint8 alpha, bool warning = false);
+
     // Camera view rendering functions (one for each room)
     void drawShowStageView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
     void drawDiningHallView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy);
