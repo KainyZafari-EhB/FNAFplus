@@ -78,25 +78,25 @@ void Renderer::drawPowerBar(float powerLevel) {
 
 void Renderer::drawDoorStatus(bool left, bool right) {
     // === ACHTERGROND - MUREN ===
-    // Achter muur (veel donkerder voor enge sfeer)
-    SDL_SetRenderDrawColor(sdlRenderer, 20, 18, 25, 255);
+    // Achter muur (industriële betonkleur)
+    SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 15, 255);
     SDL_FRect backWall = {150, 50, 500, 300};
     SDL_RenderFillRect(sdlRenderer, &backWall);
 
-    // Zijmuren (bijna zwart)
-    SDL_SetRenderDrawColor(sdlRenderer, 25, 22, 30, 255);
+    // Zijmuren (donker beton/cement)
+    SDL_SetRenderDrawColor(sdlRenderer, 15, 12, 18, 255);
     SDL_FRect leftWall = {0, 50, 150, 300};
     SDL_RenderFillRect(sdlRenderer, &leftWall);
     SDL_FRect rightWall = {650, 50, 150, 300};
     SDL_RenderFillRect(sdlRenderer, &rightWall);
 
     // === VLOER ===
-    SDL_SetRenderDrawColor(sdlRenderer, 30, 25, 22, 255);
+    SDL_SetRenderDrawColor(sdlRenderer, 18, 15, 12, 255);
     SDL_FRect floor = {0, 350, 800, 250};
     SDL_RenderFillRect(sdlRenderer, &floor);
 
-    // Vloer tegels (voor detail - subtiel)
-    SDL_SetRenderDrawColor(sdlRenderer, 25, 20, 18, 255);
+    // Vloer tegels (industriële tegels)
+    SDL_SetRenderDrawColor(sdlRenderer, 15, 12, 10, 255);
     for (int i = 0; i < 800; i += 100) {
         SDL_RenderLine(sdlRenderer, i, 350, i, 600);
     }
@@ -104,165 +104,287 @@ void Renderer::drawDoorStatus(bool left, bool right) {
         SDL_RenderLine(sdlRenderer, 0, j, 800, j);
     }
 
-    // === PLAFOND ===
-    SDL_SetRenderDrawColor(sdlRenderer, 18, 15, 20, 255);
+    // === PLAFOND MET VENTILATIE ===
+    SDL_SetRenderDrawColor(sdlRenderer, 10, 8, 12, 255);
     SDL_FRect ceiling = {0, 0, 800, 50};
     SDL_RenderFillRect(sdlRenderer, &ceiling);
 
-    // Plafond ventilator (donker metaal)
-    SDL_SetRenderDrawColor(sdlRenderer, 40, 40, 42, 255);
-    SDL_FRect fan = {380, 10, 40, 30};
-    SDL_RenderFillRect(sdlRenderer, &fan);
-    SDL_FRect fanBlade1 = {350, 20, 100, 10};
-    SDL_FRect fanBlade2 = {390, 5, 20, 40};
-    SDL_RenderFillRect(sdlRenderer, &fanBlade1);
-    SDL_RenderFillRect(sdlRenderer, &fanBlade2);
+    // Ventilatierooster (links)
+    SDL_SetRenderDrawColor(sdlRenderer, 5, 5, 5, 255);
+    SDL_FRect vent1 = {50, 10, 60, 30};
+    SDL_RenderFillRect(sdlRenderer, &vent1);
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+    for (int v = 15; v < 35; v += 5) {
+        SDL_RenderLine(sdlRenderer, 50, v, 110, v);
+    }
 
-    // === BUREAU/DESK ===
-    // Tafelblad (oud, donker hout)
-    SDL_SetRenderDrawColor(sdlRenderer, 40, 30, 20, 255);
+    // Ventilatierooster (rechts)
+    SDL_FRect vent2 = {690, 10, 60, 30};
+    SDL_SetRenderDrawColor(sdlRenderer, 5, 5, 5, 255);
+    SDL_RenderFillRect(sdlRenderer, &vent2);
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+    for (int v = 15; v < 35; v += 5) {
+        SDL_RenderLine(sdlRenderer, 690, v, 750, v);
+    }
+
+    // Plafond lamp (flikkerende TL-buis sfeer)
+    SDL_SetRenderDrawColor(sdlRenderer, 25, 25, 20, 255);
+    SDL_FRect lightFixture = {350, 8, 100, 15};
+    SDL_RenderFillRect(sdlRenderer, &lightFixture);
+
+    // === SECURITY BUREAU/DESK ===
+    // Metalen bureau (grijs/groen industrieel)
+    SDL_SetRenderDrawColor(sdlRenderer, 22, 25, 20, 255);
     SDL_FRect desk = {200, 400, 400, 150};
     SDL_RenderFillRect(sdlRenderer, &desk);
 
-    // Tafel rand (3D effect - donkerder)
-    SDL_SetRenderDrawColor(sdlRenderer, 50, 40, 25, 255);
-    SDL_FRect deskEdge = {200, 400, 400, 15};
+    // Bureau rand (metaal effect)
+    SDL_SetRenderDrawColor(sdlRenderer, 28, 30, 25, 255);
+    SDL_FRect deskEdge = {200, 400, 400, 12};
     SDL_RenderFillRect(sdlRenderer, &deskEdge);
 
-    // Tafel poten (bijna zwart)
-    SDL_SetRenderDrawColor(sdlRenderer, 35, 25, 15, 255);
-    SDL_FRect leg1 = {220, 550, 20, 50};
-    SDL_FRect leg2 = {560, 550, 20, 50};
+    // Metalen poten (industrieel)
+    SDL_SetRenderDrawColor(sdlRenderer, 18, 18, 18, 255);
+    SDL_FRect leg1 = {220, 550, 25, 50};
+    SDL_FRect leg2 = {555, 550, 25, 50};
     SDL_RenderFillRect(sdlRenderer, &leg1);
     SDL_RenderFillRect(sdlRenderer, &leg2);
 
-    // === MONITOR OP BUREAU ===
-    // Monitor voet (bijna zwart)
+    // === SECURITY MONITORS EN APPARATUUR ===
+    // Monitor 1 (hoofd monitor - groter)
+    SDL_SetRenderDrawColor(sdlRenderer, 8, 8, 8, 255);
+    SDL_FRect monitor1Stand = {340, 480, 50, 35};
+    SDL_RenderFillRect(sdlRenderer, &monitor1Stand);
+
+    SDL_SetRenderDrawColor(sdlRenderer, 5, 6, 8, 255);
+    SDL_FRect monitor1 = {310, 420, 120, 75};
+    SDL_RenderFillRect(sdlRenderer, &monitor1);
+    SDL_SetRenderDrawColor(sdlRenderer, 12, 12, 14, 255);
+    SDL_RenderRect(sdlRenderer, &monitor1);
+
+    // Klein groen lampje op monitor (aan)
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 100, 0, 255);
+    SDL_FRect monitorLight = {425, 425, 3, 3};
+    SDL_RenderFillRect(sdlRenderer, &monitorLight);
+
+    // Monitor 2 (kleiner - rechts)
+    SDL_FRect monitor2 = {440, 440, 80, 55};
+    SDL_SetRenderDrawColor(sdlRenderer, 5, 6, 8, 255);
+    SDL_RenderFillRect(sdlRenderer, &monitor2);
+    SDL_SetRenderDrawColor(sdlRenderer, 12, 12, 14, 255);
+    SDL_RenderRect(sdlRenderer, &monitor2);
+
+    // Toetsenbord op bureau
     SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
-    SDL_FRect monitorStand = {370, 480, 60, 40};
-    SDL_RenderFillRect(sdlRenderer, &monitorStand);
+    SDL_FRect keyboard = {450, 510, 90, 25};
+    SDL_RenderFillRect(sdlRenderer, &keyboard);
 
-    // Monitor scherm (uit/zwart met subtiele gloed)
-    SDL_SetRenderDrawColor(sdlRenderer, 8, 10, 12, 255);
-    SDL_FRect monitor = {330, 420, 140, 80};
-    SDL_RenderFillRect(sdlRenderer, &monitor);
+    // Koffiekopje (security guard essentials!)
+    SDL_SetRenderDrawColor(sdlRenderer, 80, 60, 50, 255);
+    SDL_FRect coffeeCup = {550, 515, 20, 25};
+    SDL_RenderFillRect(sdlRenderer, &coffeeCup);
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 15, 10, 255);
+    SDL_FRect coffeeTop = {550, 515, 20, 5};
+    SDL_RenderFillRect(sdlRenderer, &coffeeTop);
 
-    // Monitor rand
-    SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 22, 255);
-    SDL_RenderRect(sdlRenderer, &monitor);
+    // === FILING CABINETS (ARCHIEFKASTEN) ===
+    // Linkse archiefkast (naast linker deur)
+    SDL_SetRenderDrawColor(sdlRenderer, 25, 28, 25, 255);
+    SDL_FRect fileCabinet1 = {155, 200, 70, 140};
+    SDL_RenderFillRect(sdlRenderer, &fileCabinet1);
+    SDL_SetRenderDrawColor(sdlRenderer, 18, 20, 18, 255);
+    SDL_RenderRect(sdlRenderer, &fileCabinet1);
 
-    // === POSTERS OP MUUR ===
-    // Poster 1 (links - vervaagd en donker)
-    SDL_SetRenderDrawColor(sdlRenderer, 45, 35, 30, 255);
+    // Lades
+    SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
+    for (int d = 0; d < 3; d++) {
+        SDL_FRect drawer = {157, 205 + (d * 45), 66, 40};
+        SDL_RenderRect(sdlRenderer, &drawer);
+        // Handvat
+        SDL_FRect handle = {185, 220 + (d * 45), 10, 3};
+        SDL_RenderFillRect(sdlRenderer, &handle);
+    }
+
+    // Rechtse archiefkast
+    SDL_SetRenderDrawColor(sdlRenderer, 25, 28, 25, 255);
+    SDL_FRect fileCabinet2 = {575, 200, 70, 140};
+    SDL_RenderFillRect(sdlRenderer, &fileCabinet2);
+    SDL_SetRenderDrawColor(sdlRenderer, 18, 20, 18, 255);
+    SDL_RenderRect(sdlRenderer, &fileCabinet2);
+
+    // Lades
+    SDL_SetRenderDrawColor(sdlRenderer, 15, 15, 15, 255);
+    for (int d = 0; d < 3; d++) {
+        SDL_FRect drawer = {577, 205 + (d * 45), 66, 40};
+        SDL_RenderRect(sdlRenderer, &drawer);
+        // Handvat
+        SDL_FRect handle = {605, 220 + (d * 45), 10, 3};
+        SDL_RenderFillRect(sdlRenderer, &handle);
+    }
+
+    // === RESTAURANT POSTERS (in plaats van gewone posters) ===
+    // "FREDDY FAZBEAR'S PIZZA" poster (links)
+    SDL_SetRenderDrawColor(sdlRenderer, 40, 20, 20, 255); // Rode rand
+    SDL_FRect poster1Border = {168, 98, 64, 84};
+    SDL_RenderFillRect(sdlRenderer, &poster1Border);
+    SDL_SetRenderDrawColor(sdlRenderer, 25, 15, 10, 255);
     SDL_FRect poster1 = {170, 100, 60, 80};
     SDL_RenderFillRect(sdlRenderer, &poster1);
-    SDL_SetRenderDrawColor(sdlRenderer, 60, 45, 35, 255);
-    SDL_RenderRect(sdlRenderer, &poster1);
+    // Decoratieve elementen (ballon/pizza suggestie)
+    SDL_SetRenderDrawColor(sdlRenderer, 80, 40, 40, 255);
+    SDL_FRect pizzaIcon = {185, 115, 30, 25};
+    SDL_RenderFillRect(sdlRenderer, &pizzaIcon);
 
-    // Poster 2 (rechts)
+    // "RULES & SAFETY" poster (rechts)
+    SDL_SetRenderDrawColor(sdlRenderer, 30, 30, 20, 255); // Gele rand
+    SDL_FRect poster2Border = {568, 118, 64, 84};
+    SDL_RenderFillRect(sdlRenderer, &poster2Border);
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 18, 12, 255);
     SDL_FRect poster2 = {570, 120, 60, 80};
     SDL_RenderFillRect(sdlRenderer, &poster2);
-    SDL_SetRenderDrawColor(sdlRenderer, 60, 45, 35, 255);
-    SDL_RenderRect(sdlRenderer, &poster2);
+    // Tekst lijnen suggestie
+    SDL_SetRenderDrawColor(sdlRenderer, 40, 38, 30, 255);
+    for (int line = 0; line < 5; line++) {
+        SDL_FRect textLine = {575, 130 + (line * 12), 50, 2};
+        SDL_RenderFillRect(sdlRenderer, &textLine);
+    }
 
-    // === DEUREN (NU MET MEER DETAIL) ===
-    // Linker deur frame (donker hout)
-    SDL_SetRenderDrawColor(sdlRenderer, 35, 28, 22, 255);
+    // === DEUREN (SECURITY DOORS) ===
+    // Linker deur frame (metalen frame)
+    SDL_SetRenderDrawColor(sdlRenderer, 22, 22, 20, 255);
     SDL_FRect leftDoorFrame = {30, 80, 120, 270};
     SDL_RenderFillRect(sdlRenderer, &leftDoorFrame);
 
     // Linker deur
     SDL_FRect leftDoor = {40, 90, 100, 250};
     if (left) {
-        // Dicht - deur zichtbaar (oud donker hout)
-        SDL_SetRenderDrawColor(sdlRenderer, 60, 50, 40, 255);
+        // Dicht - metalen security deur
+        SDL_SetRenderDrawColor(sdlRenderer, 35, 35, 32, 255);
         SDL_RenderFillRect(sdlRenderer, &leftDoor);
 
-        // Deur panelen (details - nog donkerder)
-        SDL_SetRenderDrawColor(sdlRenderer, 50, 40, 30, 255);
-        SDL_FRect panel1 = {50, 100, 80, 50};
-        SDL_FRect panel2 = {50, 160, 80, 50};
-        SDL_FRect panel3 = {50, 220, 80, 50};
+        // Metalen panelen
+        SDL_SetRenderDrawColor(sdlRenderer, 28, 28, 25, 255);
+        SDL_FRect panel1 = {50, 100, 80, 70};
+        SDL_FRect panel2 = {50, 180, 80, 70};
+        SDL_FRect panel3 = {50, 260, 80, 70};
         SDL_RenderFillRect(sdlRenderer, &panel1);
         SDL_RenderFillRect(sdlRenderer, &panel2);
         SDL_RenderFillRect(sdlRenderer, &panel3);
 
-        // Deurknop (gedimd messing)
-        SDL_SetRenderDrawColor(sdlRenderer, 90, 80, 50, 255);
-        SDL_FRect leftHandle = {130, 210, 8, 15};
+        // Verticale rand/scharnieren
+        SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 255);
+        SDL_FRect hinge1 = {45, 110, 8, 20};
+        SDL_FRect hinge2 = {45, 210, 8, 20};
+        SDL_FRect hinge3 = {45, 300, 8, 20};
+        SDL_RenderFillRect(sdlRenderer, &hinge1);
+        SDL_RenderFillRect(sdlRenderer, &hinge2);
+        SDL_RenderFillRect(sdlRenderer, &hinge3);
+
+        // Deurknop (industrieel)
+        SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 48, 255);
+        SDL_FRect leftHandle = {125, 210, 10, 20};
         SDL_RenderFillRect(sdlRenderer, &leftHandle);
     } else {
-        // Open - donkere, angstaanjagende opening
-        SDL_SetRenderDrawColor(sdlRenderer, 5, 3, 8, 255);
+        // Open - donkere gang
+        SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
         SDL_RenderFillRect(sdlRenderer, &leftDoor);
     }
-    SDL_SetRenderDrawColor(sdlRenderer, 20, 15, 10, 255);
+    SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
     SDL_RenderRect(sdlRenderer, &leftDoor);
 
-    // Rechter deur frame (donker hout)
-    SDL_SetRenderDrawColor(sdlRenderer, 35, 28, 22, 255);
+    // Rechter deur frame (metalen frame)
+    SDL_SetRenderDrawColor(sdlRenderer, 22, 22, 20, 255);
     SDL_FRect rightDoorFrame = {650, 80, 120, 270};
     SDL_RenderFillRect(sdlRenderer, &rightDoorFrame);
 
     // Rechter deur
     SDL_FRect rightDoor = {660, 90, 100, 250};
     if (right) {
-        // Dicht - deur zichtbaar (oud donker hout)
-        SDL_SetRenderDrawColor(sdlRenderer, 60, 50, 40, 255);
+        // Dicht - metalen security deur
+        SDL_SetRenderDrawColor(sdlRenderer, 35, 35, 32, 255);
         SDL_RenderFillRect(sdlRenderer, &rightDoor);
 
-        // Deur panelen (nog donkerder)
-        SDL_SetRenderDrawColor(sdlRenderer, 50, 40, 30, 255);
-        SDL_FRect panel1 = {670, 100, 80, 50};
-        SDL_FRect panel2 = {670, 160, 80, 50};
-        SDL_FRect panel3 = {670, 220, 80, 50};
+        // Metalen panelen
+        SDL_SetRenderDrawColor(sdlRenderer, 28, 28, 25, 255);
+        SDL_FRect panel1 = {670, 100, 80, 70};
+        SDL_FRect panel2 = {670, 180, 80, 70};
+        SDL_FRect panel3 = {670, 260, 80, 70};
         SDL_RenderFillRect(sdlRenderer, &panel1);
         SDL_RenderFillRect(sdlRenderer, &panel2);
         SDL_RenderFillRect(sdlRenderer, &panel3);
 
-        // Deurknop (gedimd messing)
-        SDL_SetRenderDrawColor(sdlRenderer, 90, 80, 50, 255);
-        SDL_FRect rightHandle = {662, 210, 8, 15};
+        // Verticale rand/scharnieren
+        SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 255);
+        SDL_FRect hinge1 = {747, 110, 8, 20};
+        SDL_FRect hinge2 = {747, 210, 8, 20};
+        SDL_FRect hinge3 = {747, 300, 8, 20};
+        SDL_RenderFillRect(sdlRenderer, &hinge1);
+        SDL_RenderFillRect(sdlRenderer, &hinge2);
+        SDL_RenderFillRect(sdlRenderer, &hinge3);
+
+        // Deurknop (industrieel)
+        SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 48, 255);
+        SDL_FRect rightHandle = {665, 210, 10, 20};
         SDL_RenderFillRect(sdlRenderer, &rightHandle);
     } else {
-        // Open - donkere, angstaanjagende opening
-        SDL_SetRenderDrawColor(sdlRenderer, 5, 3, 8, 255);
+        // Open - donkere gang
+        SDL_SetRenderDrawColor(sdlRenderer, 3, 2, 5, 255);
         SDL_RenderFillRect(sdlRenderer, &rightDoor);
     }
-    SDL_SetRenderDrawColor(sdlRenderer, 20, 15, 10, 255);
+    SDL_SetRenderDrawColor(sdlRenderer, 12, 10, 6, 255);
     SDL_RenderRect(sdlRenderer, &rightDoor);
 
-    // === LAMPJES/VERLICHTING INDICATORS ===
-    // Linker deur licht indicator
+    // === DEUR CONTROL BUTTONS ===
+    // Linker deur knop paneel
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+    SDL_FRect leftPanel = {85, 355, 30, 40};
+    SDL_RenderFillRect(sdlRenderer, &leftPanel);
+
+    // Knop indicator licht
     if (left) {
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255); // Rood = dicht
+        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 0, 255); // Rood = dicht
     } else {
-        SDL_SetRenderDrawColor(sdlRenderer, 0, 255, 0, 255); // Groen = open
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 0, 255); // Groen = open
     }
-    SDL_FRect leftLight = {90, 360, 15, 15};
+    SDL_FRect leftLight = {95, 370, 10, 10};
     SDL_RenderFillRect(sdlRenderer, &leftLight);
 
-    // Rechter deur licht indicator
+    // Rechter deur knop paneel
+    SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 20, 255);
+    SDL_FRect rightPanel = {685, 355, 30, 40};
+    SDL_RenderFillRect(sdlRenderer, &rightPanel);
+
+    // Knop indicator licht
     if (right) {
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255);
+        SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 0, 255);
     } else {
-        SDL_SetRenderDrawColor(sdlRenderer, 0, 255, 0, 255);
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 180, 0, 255);
     }
-    SDL_FRect rightLight = {695, 360, 15, 15};
+    SDL_FRect rightLight = {695, 370, 10, 10};
     SDL_RenderFillRect(sdlRenderer, &rightLight);
 
-    // === SCHADUWEN (voor diepte en enge sfeer) ===
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 120);
-    SDL_FRect shadow1 = {200, 545, 400, 8}; // Bureau schaduw (groter en donkerder)
+    // === SCHADUWEN EN VIGNETTE ===
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 100);
+    SDL_FRect shadow1 = {200, 545, 400, 8};
     SDL_RenderFillRect(sdlRenderer, &shadow1);
 
-    // Extra schaduwen in de hoeken voor meer angst
-    SDL_FRect shadowCornerLeft = {0, 0, 100, 100};
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 60);
-    SDL_RenderFillRect(sdlRenderer, &shadowCornerLeft);
+    // Subtiele vignette
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 25);
+    SDL_FRect topVignette1 = {0, 0, 800, 15};
+    SDL_RenderFillRect(sdlRenderer, &topVignette1);
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 15);
+    SDL_FRect topVignette2 = {0, 15, 800, 15};
+    SDL_RenderFillRect(sdlRenderer, &topVignette2);
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 8);
+    SDL_FRect topVignette3 = {0, 30, 800, 15};
+    SDL_RenderFillRect(sdlRenderer, &topVignette3);
 
-    SDL_FRect shadowCornerRight = {700, 0, 100, 100};
-    SDL_RenderFillRect(sdlRenderer, &shadowCornerRight);
+    // Zijkant schaduwen
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 20);
+    SDL_FRect leftEdgeVignette = {0, 45, 25, 300};
+    SDL_RenderFillRect(sdlRenderer, &leftEdgeVignette);
+    SDL_FRect rightEdgeVignette = {775, 45, 25, 300};
+    SDL_RenderFillRect(sdlRenderer, &rightEdgeVignette);
 }
 
 void Renderer::renderJumpscare() {
