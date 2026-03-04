@@ -580,23 +580,23 @@ bool isAnimatronicInRoom(Room room, const Animatronic& animatronic) {
 }
 
 void Renderer::drawCameraMap(Room activeCamera, const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy) {
-    // Minimap in rechter benedenhoek (kleiner dan voorheen)
-    float offsetX = 480.0f;  // Start positie rechts
-    float offsetY = 320.0f;  // Start positie onder
-    float scale = 0.4f;      // Schaal factor (40% van origineel)
+    // Nog kleinere minimap in de rechter bovenhoek (minimaal)
+    float offsetX = 610.0f;  // Helemaal rechts
+    float offsetY = 50.0f;   // Helemaal boven
+    float scale = 0.18f;     // Zeer klein (18% van origineel)
 
-    // Semi-transparante achtergrond voor minimap
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 180);
-    SDL_FRect minimapBG = {offsetX - 10, offsetY - 10, 330, 270};
+    // Zeer transparante achtergrond voor minimap
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 100);
+    SDL_FRect minimapBG = {offsetX - 5, offsetY - 15, 150, 125};
     SDL_RenderFillRect(sdlRenderer, &minimapBG);
 
-    // Rand
-    SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
+    // Subtiele rand
+    SDL_SetRenderDrawColor(sdlRenderer, 60, 60, 60, 150);
     SDL_RenderRect(sdlRenderer, &minimapBG);
 
-    // Label
-    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
-    SDL_RenderDebugText(sdlRenderer, offsetX, offsetY - 5, "MAP:");
+    // Klein label
+    SDL_SetRenderDrawColor(sdlRenderer, 160, 160, 160, 255);
+    SDL_RenderDebugText(sdlRenderer, offsetX, offsetY - 10, "MAP");
 
     // Definieer kamers (geschaald en verplaatst)
     std::map<Room, SDL_FRect> roomLayout = {
@@ -629,8 +629,9 @@ void Renderer::drawCameraMap(Room activeCamera, const Animatronic& bonnie, const
     SDL_SetRenderDrawColor(sdlRenderer, 100, 140, 200, 255);
     SDL_RenderRect(sdlRenderer, &officeSpace);
 
-    // Teken kamers
+    // Teken kamers met nummer labels
     for (auto const& [room, rect] : roomLayout) {
+        // Bepaal kleur en actieve status
         if (room == activeCamera) {
             SDL_SetRenderDrawColor(sdlRenderer, 0, 200, 0, 255); // Actieve camera (groen)
         } else if (room == LEFT_OFFICE || room == RIGHT_OFFICE) {
@@ -642,20 +643,41 @@ void Renderer::drawCameraMap(Room activeCamera, const Animatronic& bonnie, const
         SDL_SetRenderDrawColor(sdlRenderer, 120, 120, 120, 255);
         SDL_RenderRect(sdlRenderer, &rect);
 
-        // Teken animatronics (kleinere dots)
+        // Teken hotkey nummer voor elke kamer (groot en duidelijk)
+        SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+        const char* keyLabel = "";
+        switch(room) {
+            case SHOW_STAGE: keyLabel = "1"; break;
+            case DINING_HALL: keyLabel = "2"; break;
+            case BACKROOM: keyLabel = "3"; break;
+            case KITCHEN: keyLabel = "4"; break;
+            case RESTROOM: keyLabel = "5"; break;
+            case LEFT_HALLWAY: keyLabel = "6"; break;
+            case RIGHT_HALLWAY: keyLabel = "7"; break;
+            case LEFT_OFFICE: keyLabel = "8"; break;
+            case RIGHT_OFFICE: keyLabel = "9"; break;
+            default: keyLabel = "?"; break;
+        }
+
+        // Teken nummer in het midden van de kamer
+        float labelX = rect.x + (rect.w / 2) - 3;
+        float labelY = rect.y + (rect.h / 2) - 4;
+        SDL_RenderDebugText(sdlRenderer, labelX, labelY, keyLabel);
+
+        // Teken animatronics (zeer kleine dots in de hoeken)
         if (isAnimatronicInRoom(room, bonnie)) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
-            SDL_FRect dot = {rect.x + (rect.w / 2) - 3, rect.y + (rect.h / 2) - 3, 6, 6};
+            SDL_FRect dot = {rect.x + 1, rect.y + 1, 3, 3};
             SDL_RenderFillRect(sdlRenderer, &dot);
         }
         if (isAnimatronicInRoom(room, chica)) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
-            SDL_FRect dot = {rect.x + (rect.w / 2) + 3, rect.y + (rect.h / 2) + 3, 6, 6};
+            SDL_FRect dot = {rect.x + rect.w - 4, rect.y + 1, 3, 3};
             SDL_RenderFillRect(sdlRenderer, &dot);
         }
         if (isAnimatronicInRoom(room, freddy)) {
             SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255);
-            SDL_FRect dot = {rect.x + (rect.w / 2) - 6, rect.y + (rect.h / 2) - 6, 6, 6};
+            SDL_FRect dot = {rect.x + 1, rect.y + rect.h - 4, 3, 3};
             SDL_RenderFillRect(sdlRenderer, &dot);
         }
     }
@@ -730,20 +752,55 @@ void Renderer::drawCameraView(Room camera, const Animatronic& bonnie, const Anim
         SDL_RenderDebugText(sdlRenderer, 45, 48, "REC");
     }
 
-    // Hotkey instructions (links onder)
-    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 180);
-    SDL_FRect instructionsBG = {20, 500, 280, 80};
+    // Verbeterde hotkey instructies (compacter en duidelijker)
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 200);
+    SDL_FRect instructionsBG = {20, 490, 300, 95};
     SDL_RenderFillRect(sdlRenderer, &instructionsBG);
     SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
     SDL_RenderRect(sdlRenderer, &instructionsBG);
 
-    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
-    SDL_RenderDebugText(sdlRenderer, 30, 508, "CAMERA CONTROLS:");
+    SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
+    SDL_RenderDebugText(sdlRenderer, 30, 498, "CAMERA HOTKEYS:");
+
+    SDL_SetRenderDrawColor(sdlRenderer, 180, 180, 180, 255);
+    SDL_RenderDebugText(sdlRenderer, 30, 515, "[1] Stage    [2] Dining   [3] Back");
+    SDL_RenderDebugText(sdlRenderer, 30, 530, "[4] Kitchen  [5] Restroom [6] L.Hall");
+    SDL_RenderDebugText(sdlRenderer, 30, 545, "[7] R.Hall   [8] L.Door!  [9] R.Door!");
+
     SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
-    SDL_RenderDebugText(sdlRenderer, 30, 525, "1=Stage 2=Dining 3=Back");
-    SDL_RenderDebugText(sdlRenderer, 30, 540, "4=Kitchen 5=Rest 6=LHall");
-    SDL_RenderDebugText(sdlRenderer, 30, 555, "7=RHall 8=LDoor 9=RDoor");
-    SDL_RenderDebugText(sdlRenderer, 30, 570, "S=Close Cameras");
+    SDL_RenderDebugText(sdlRenderer, 30, 565, "[S] Close Cameras");
+
+    // Legenda voor animatronics (onder de minimap, rechts)
+    float legendX = 600.0f;
+    float legendY = 180.0f;
+
+    // Achtergrond voor legenda
+    SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 120);
+    SDL_FRect legendBG = {legendX - 5, legendY - 5, 155, 35};
+    SDL_RenderFillRect(sdlRenderer, &legendBG);
+    SDL_SetRenderDrawColor(sdlRenderer, 60, 60, 60, 150);
+    SDL_RenderRect(sdlRenderer, &legendBG);
+
+    // Bonnie indicator
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 255, 255);
+    SDL_FRect bonnieIndicator = {legendX, legendY, 6, 6};
+    SDL_RenderFillRect(sdlRenderer, &bonnieIndicator);
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+    SDL_RenderDebugText(sdlRenderer, legendX + 10, legendY - 2, "Bonnie");
+
+    // Chica indicator
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
+    SDL_FRect chicaIndicator = {legendX + 70, legendY, 6, 6};
+    SDL_RenderFillRect(sdlRenderer, &chicaIndicator);
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+    SDL_RenderDebugText(sdlRenderer, legendX + 80, legendY - 2, "Chica");
+
+    // Freddy indicator
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255);
+    SDL_FRect freddyIndicator = {legendX, legendY + 15, 6, 6};
+    SDL_RenderFillRect(sdlRenderer, &freddyIndicator);
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+    SDL_RenderDebugText(sdlRenderer, legendX + 10, legendY + 13, "Freddy");
 }
 
 void Renderer::drawShowStageView(const Animatronic& bonnie, const Animatronic& chica, const Animatronic& freddy) {
