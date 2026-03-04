@@ -70,17 +70,28 @@ void Renderer::clean() {
 }
 
 void Renderer::drawPowerBar(float powerLevel) {
+    // Verplaatst naar rechts onder om hotkeys niet te overlappen
     // Achterkant van de balk (leeg)
-    SDL_FRect bgRect = { 50, 520, 200, 30 };
+    SDL_FRect bgRect = { 550, 520, 200, 30 };
     SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 255);
     SDL_RenderFillRect(sdlRenderer, &bgRect);
 
     // De gevulde stroom (groen/rood)
-    SDL_FRect powerRect = { 50, 520, (powerLevel * 2), 30 };
+    SDL_FRect powerRect = { 550, 520, (powerLevel * 2), 30 };
     if (powerLevel > 20) SDL_SetRenderDrawColor(sdlRenderer, 0, 255, 0, 255);
     else SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 255); // Rood bij lage stroom
     
     SDL_RenderFillRect(sdlRenderer, &powerRect);
+
+    // Label boven de power bar
+    SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
+    SDL_RenderDebugText(sdlRenderer, 555, 505, "POWER:");
+
+    // Percentage weergave
+    char powerText[20];
+    snprintf(powerText, sizeof(powerText), "%.0f%%", powerLevel);
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
+    SDL_RenderDebugText(sdlRenderer, 660, 525, powerText);
 }
 
 void Renderer::drawDoorStatus(bool left, bool right) {
@@ -518,8 +529,8 @@ void Renderer::drawWekker(Uint64 elapsedTime, Uint64 remainingTime) {
         r = 255; g = 0; b = 0;
     }
 
-    // ===== ACHTERGROND BOX =====
-    SDL_FRect wekkerBG = {600, 10, 190, 80};
+    // ===== ACHTERGROND BOX (LINKS BOVEN - UIT DE WEG VAN MINIMAP) =====
+    SDL_FRect wekkerBG = {20, 10, 190, 80};
     SDL_SetRenderDrawColor(sdlRenderer, 20, 20, 30, 220);
     SDL_RenderFillRect(sdlRenderer, &wekkerBG);
 
@@ -527,12 +538,12 @@ void Renderer::drawWekker(Uint64 elapsedTime, Uint64 remainingTime) {
     SDL_SetRenderDrawColor(sdlRenderer, r, g, b, 255);
     SDL_RenderRect(sdlRenderer, &wekkerBG);
     // Extra dikke rand voor meer zichtbaarheid
-    SDL_FRect innerBorder = {602, 12, 186, 76};
+    SDL_FRect innerBorder = {22, 12, 186, 76};
     SDL_RenderRect(sdlRenderer, &innerBorder);
 
     // ===== TITEL =====
     SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 255);
-    SDL_RenderDebugText(sdlRenderer, 605, 15, "TIME TO SURVIVE:");
+    SDL_RenderDebugText(sdlRenderer, 25, 15, "TIME TO SURVIVE:");
 
     // ===== GROTE TIJDWEERGAVE =====
     char timeBuffer[10];
@@ -540,7 +551,7 @@ void Renderer::drawWekker(Uint64 elapsedTime, Uint64 remainingTime) {
 
     // Format grote display
     SDL_SetRenderDrawColor(sdlRenderer, r, g, b, 255);
-    SDL_RenderDebugText(sdlRenderer, 630, 45, timeBuffer);
+    SDL_RenderDebugText(sdlRenderer, 50, 45, timeBuffer);
 
     // ===== PROGRESSBALK =====
     // Toon de voortgang visueel
@@ -548,11 +559,11 @@ void Renderer::drawWekker(Uint64 elapsedTime, Uint64 remainingTime) {
     if (progress < 0) progress = 0;
     if (progress > 1) progress = 1;
 
-    SDL_FRect progressBG = {605, 70, 180, 12};
+    SDL_FRect progressBG = {25, 70, 180, 12};
     SDL_SetRenderDrawColor(sdlRenderer, 50, 50, 50, 200);
     SDL_RenderFillRect(sdlRenderer, &progressBG);
 
-    SDL_FRect progressBar = {605, 70, 180 * progress, 12};
+    SDL_FRect progressBar = {25, 70, 180 * progress, 12};
     SDL_SetRenderDrawColor(sdlRenderer, r, g, b, 255);
     SDL_RenderFillRect(sdlRenderer, &progressBar);
 }
