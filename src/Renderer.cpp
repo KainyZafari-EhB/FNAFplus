@@ -460,25 +460,34 @@ void Renderer::toggleFullscreen() {
 }
 
 void Renderer::drawCameraBar(bool cameraActive) {
-    // 1. Bepaal de positie: onderaan het scherm (bijv. 800x600 venster)
-    // De balk is 600 pixels breed en 40 pixels hoog
-    SDL_FRect camBar = { 100, 550, 600, 40 };
+    // Kleine, subtiele hint boven in het midden (alleen als camera's UIT zijn)
+    if (!cameraActive) {
+        // Knippering effect om aandacht te trekken
+        int blinkState = (SDL_GetTicks() / 800) % 2;
 
-    // 2. Kies de kleur
-    if (cameraActive) {
-        // Fel groen of blauw als de camera open is
-        SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 150);
+        if (blinkState) {
+            // Semi-transparante achtergrond box
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 120);
+            SDL_FRect hintBox = { 320, 100, 160, 25 };
+            SDL_RenderFillRect(sdlRenderer, &hintBox);
+
+            // Subtiele rand
+            SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 180);
+            SDL_RenderRect(sdlRenderer, &hintBox);
+
+            // Tekst in geel/wit voor zichtbaarheid
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 100, 255);
+            SDL_RenderDebugText(sdlRenderer, 330, 105, "[S] Open Cameras");
+        }
     } else {
-        // Grijs/wit als de camera dicht is
-        SDL_SetRenderDrawColor(sdlRenderer, 200, 200, 200, 100); // Lichtgrijs
+        // Als camera's OPEN zijn, toon kleine indicator
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 100);
+        SDL_FRect statusBox = { 360, 100, 80, 20 };
+        SDL_RenderFillRect(sdlRenderer, &statusBox);
+
+        SDL_SetRenderDrawColor(sdlRenderer, 0, 255, 0, 255);
+        SDL_RenderDebugText(sdlRenderer, 365, 103, "CAM ON");
     }
-
-    // 3. Teken de balk
-    SDL_RenderFillRect(sdlRenderer, &camBar);
-
-    // 4. Teken een randje eromheen voor een 'UI' gevoel
-    SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 180); // Puur wit
-    SDL_RenderDebugText(sdlRenderer, 350, 560, " [ S for camera's ] "); // Simpele SDL3 debug tekst
 }
 
 void Renderer::drawStatic() {
