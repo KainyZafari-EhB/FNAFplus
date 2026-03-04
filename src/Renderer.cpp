@@ -649,40 +649,29 @@ void Renderer::drawCameraMap(Room activeCamera, const Animatronic& bonnie, const
     SDL_SetRenderDrawColor(sdlRenderer, 100, 140, 200, 255);
     SDL_RenderRect(sdlRenderer, &officeSpace);
 
-    // Teken kamers met nummer labels
+    // Teken kamers (zonder nummer labels - we gebruiken nu pijltjestoetsen)
     for (auto const& [room, rect] : roomLayout) {
         // Bepaal kleur en actieve status
         if (room == activeCamera) {
             SDL_SetRenderDrawColor(sdlRenderer, 0, 200, 0, 255); // Actieve camera (groen)
         } else if (room == LEFT_OFFICE || room == RIGHT_OFFICE) {
-            SDL_SetRenderDrawColor(sdlRenderer, 200, 40, 40, 255); // Deuren (rood)
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 40, 40, 255); // Deuren (rood - belangrijk!)
         } else {
             SDL_SetRenderDrawColor(sdlRenderer, 60, 60, 60, 255); // Inactief
         }
         SDL_RenderFillRect(sdlRenderer, &rect);
-        SDL_SetRenderDrawColor(sdlRenderer, 120, 120, 120, 255);
-        SDL_RenderRect(sdlRenderer, &rect);
 
-        // Teken hotkey nummer voor elke kamer (groot en duidelijk)
-        SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
-        const char* keyLabel = "";
-        switch(room) {
-            case SHOW_STAGE: keyLabel = "1"; break;
-            case DINING_HALL: keyLabel = "2"; break;
-            case BACKROOM: keyLabel = "3"; break;
-            case KITCHEN: keyLabel = "4"; break;
-            case RESTROOM: keyLabel = "5"; break;
-            case LEFT_HALLWAY: keyLabel = "6"; break;
-            case RIGHT_HALLWAY: keyLabel = "7"; break;
-            case LEFT_OFFICE: keyLabel = "8"; break;
-            case RIGHT_OFFICE: keyLabel = "9"; break;
-            default: keyLabel = "?"; break;
+        // Dikkere rand voor actieve camera
+        if (room == activeCamera) {
+            SDL_SetRenderDrawColor(sdlRenderer, 0, 255, 0, 255);
+            SDL_RenderRect(sdlRenderer, &rect);
+            // Extra border voor nadruk
+            SDL_FRect innerRect = {rect.x + 1, rect.y + 1, rect.w - 2, rect.h - 2};
+            SDL_RenderRect(sdlRenderer, &innerRect);
+        } else {
+            SDL_SetRenderDrawColor(sdlRenderer, 120, 120, 120, 255);
+            SDL_RenderRect(sdlRenderer, &rect);
         }
-
-        // Teken nummer in het midden van de kamer
-        float labelX = rect.x + (rect.w / 2) - 3;
-        float labelY = rect.y + (rect.h / 2) - 4;
-        SDL_RenderDebugText(sdlRenderer, labelX, labelY, keyLabel);
 
         // Teken animatronics (zeer kleine dots in de hoeken)
         if (isAnimatronicInRoom(room, bonnie)) {
@@ -772,23 +761,24 @@ void Renderer::drawCameraView(Room camera, const Animatronic& bonnie, const Anim
         SDL_RenderDebugText(sdlRenderer, 45, 48, "REC");
     }
 
-    // Verbeterde hotkey instructies (compacter en duidelijker)
+    // Hotkey instructies - ruimtelijke navigatie op minimap
     SDL_SetRenderDrawColor(sdlRenderer, 0, 0, 0, 200);
-    SDL_FRect instructionsBG = {20, 490, 300, 95};
+    SDL_FRect instructionsBG = {20, 485, 360, 100};
     SDL_RenderFillRect(sdlRenderer, &instructionsBG);
     SDL_SetRenderDrawColor(sdlRenderer, 100, 100, 100, 255);
     SDL_RenderRect(sdlRenderer, &instructionsBG);
 
     SDL_SetRenderDrawColor(sdlRenderer, 220, 220, 220, 255);
-    SDL_RenderDebugText(sdlRenderer, 30, 498, "CAMERA HOTKEYS:");
+    SDL_RenderDebugText(sdlRenderer, 30, 493, "CAMERA CONTROLS (Use Map!):");
 
     SDL_SetRenderDrawColor(sdlRenderer, 180, 180, 180, 255);
-    SDL_RenderDebugText(sdlRenderer, 30, 515, "[1] Stage    [2] Dining   [3] Back");
-    SDL_RenderDebugText(sdlRenderer, 30, 530, "[4] Kitchen  [5] Restroom [6] L.Hall");
-    SDL_RenderDebugText(sdlRenderer, 30, 545, "[7] R.Hall   [8] L.Door!  [9] R.Door!");
+    SDL_RenderDebugText(sdlRenderer, 30, 510, "[ARROWS] Move on map spatially");
+    SDL_RenderDebugText(sdlRenderer, 30, 525, "[Q] Left Door      [E] Right Door");
+    SDL_RenderDebugText(sdlRenderer, 30, 540, "[TAB] Quick Check  [SPACE] Stage");
+    SDL_RenderDebugText(sdlRenderer, 30, 555, "[S] Close Cameras");
 
     SDL_SetRenderDrawColor(sdlRenderer, 150, 150, 150, 255);
-    SDL_RenderDebugText(sdlRenderer, 30, 565, "[S] Close Cameras");
+    SDL_RenderDebugText(sdlRenderer, 30, 573, "Tip: Look at minimap for layout");
 
     // Legenda voor animatronics (onder de minimap, rechts)
     float legendX = 600.0f;

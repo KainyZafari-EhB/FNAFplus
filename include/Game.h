@@ -53,6 +53,13 @@ private:
     bool running = true;
 
     Uint64 laatsteCheckTijd = 0;      // Voor de vloeiende power-delta
+
+    // Camera cycling helper functions
+    void cycleCameraNext();
+    void cycleCameraPrevious();
+    void cycleLeftSideCameras();
+    void cycleRightSideCameras();
+    void cycleImportantCameras();
     Uint64 laatsteMovementCheck = 0;  // Voor de 5-seconden sprongen
     const Uint64 MOVEMENT_INTERVAL = 4970;
 

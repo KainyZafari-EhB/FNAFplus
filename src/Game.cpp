@@ -50,41 +50,53 @@ void Game::check_input() {
                     this->running = false;
                     break;
 
-                // === CAMERA SWITCHING (1-9) ===
-                case SDLK_1:
-                    office.currentCamera = SHOW_STAGE;
-                    office.cameraActive = true; // Activeer camera's automatisch
-                    break;
-                case SDLK_2:
-                    office.currentCamera = DINING_HALL;
+                // === SNELLE CAMERA SWITCHING MET PIJLTJESTOETSEN ===
+                case SDLK_UP:
+                    // Ga naar vorige camera in de lijst
+                    cycleCameraPrevious();
                     office.cameraActive = true;
                     break;
-                case SDLK_3:
-                    office.currentCamera = BACKROOM;
+
+                case SDLK_DOWN:
+                    // Ga naar volgende camera in de lijst
+                    cycleCameraNext();
                     office.cameraActive = true;
                     break;
-                case SDLK_4:
-                    office.currentCamera = KITCHEN;
+
+                case SDLK_LEFT:
+                    // Spring naar linkerkant kamers (Backroom -> Left Hallway -> Left Door)
+                    cycleLeftSideCameras();
                     office.cameraActive = true;
                     break;
-                case SDLK_5:
-                    office.currentCamera = RESTROOM;
+
+                case SDLK_RIGHT:
+                    // Spring naar rechterkant kamers (Kitchen -> Right Hallway -> Right Door)
+                    cycleRightSideCameras();
                     office.cameraActive = true;
                     break;
-                case SDLK_6:
-                    office.currentCamera = LEFT_HALLWAY;
-                    office.cameraActive = true;
-                    break;
-                case SDLK_7:
-                    office.currentCamera = RIGHT_HALLWAY;
-                    office.cameraActive = true;
-                    break;
-                case SDLK_8:
+
+                // === SNELLE TOEGANG TOT BELANGRIJKE CAMERA'S ===
+                case SDLK_Q:
+                    // Q = Quick check linker deur
                     office.currentCamera = LEFT_OFFICE;
                     office.cameraActive = true;
                     break;
-                case SDLK_9:
+
+                case SDLK_E:
+                    // E = Quick check rechter deur
                     office.currentCamera = RIGHT_OFFICE;
+                    office.cameraActive = true;
+                    break;
+
+                case SDLK_TAB:
+                    // TAB = Cycle door belangrijke kamers (Show Stage, Dining, beide gangen, beide deuren)
+                    cycleImportantCameras();
+                    office.cameraActive = true;
+                    break;
+
+                case SDLK_SPACE:
+                    // SPACE = Spring terug naar Show Stage (startpunt)
+                    office.currentCamera = SHOW_STAGE;
                     office.cameraActive = true;
                     break;
             }
@@ -177,3 +189,209 @@ void Game::clean() {
     }
 }
 
+// === CAMERA CYCLING HELPER FUNCTIONS ===
+// Ruimtelijke navigatie gebaseerd op de VISUELE POSITIE op de minimap
+// UP = Ga naar kamer DIE BOVEN de huidige staat op de map
+// DOWN = Ga naar kamer DIE ONDER de huidige staat op de map
+// LEFT = Ga naar kamer DIE LINKS van de huidige staat op de map
+// RIGHT = Ga naar kamer DIE RECHTS van de huidige staat op de map
+
+void Game::cycleCameraNext() {
+    // DOWN arrow: Ga naar de kamer ONDER de huidige op de minimap
+    switch(office.currentCamera) {
+        case SHOW_STAGE:
+            // Show Stage (Y=80) -> Dining Hall onder (Y=155)
+            office.currentCamera = DINING_HALL;
+            break;
+        case DINING_HALL:
+            // Dining Hall (Y=155) -> blijf centraal, ga naar Right Hallway (Y=240)
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        case BACKROOM:
+            // Backroom (Y=155) -> Left Hallway eronder (Y=240)
+            office.currentCamera = LEFT_HALLWAY;
+            break;
+        case KITCHEN:
+            // Kitchen (Y=155) -> Right Hallway eronder (Y=240)
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        case RESTROOM:
+            // Restroom (Y=155) -> Right Hallway eronder (Y=240)
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        case LEFT_HALLWAY:
+            // Left Hallway (Y=240) -> Left Office eronder (Y=325)
+            office.currentCamera = LEFT_OFFICE;
+            break;
+        case RIGHT_HALLWAY:
+            // Right Hallway (Y=240) -> Right Office eronder (Y=325)
+            office.currentCamera = RIGHT_OFFICE;
+            break;
+        case LEFT_OFFICE:
+        case RIGHT_OFFICE:
+            // Deuren zijn onderaan, ga terug naar boven
+            office.currentCamera = SHOW_STAGE;
+            break;
+        default:
+            office.currentCamera = SHOW_STAGE;
+            break;
+    }
+}
+
+void Game::cycleCameraPrevious() {
+    // UP arrow: Ga naar de kamer BOVEN de huidige op de minimap
+    switch(office.currentCamera) {
+        case SHOW_STAGE:
+            // Show Stage is bovenaan, ga naar onderaan (deuren)
+            office.currentCamera = LEFT_OFFICE;
+            break;
+        case DINING_HALL:
+            // Dining Hall (Y=155) -> Show Stage erboven (Y=80)
+            office.currentCamera = SHOW_STAGE;
+            break;
+        case BACKROOM:
+            // Backroom (Y=155) -> Dining Hall erboven (ongeveer zelfde hoogte maar logisch)
+            office.currentCamera = DINING_HALL;
+            break;
+        case KITCHEN:
+            // Kitchen (Y=155) -> Dining Hall erboven
+            office.currentCamera = DINING_HALL;
+            break;
+        case RESTROOM:
+            // Restroom (Y=155) -> Kitchen of Dining Hall erboven
+            office.currentCamera = KITCHEN;
+            break;
+        case LEFT_HALLWAY:
+            // Left Hallway (Y=240) -> Backroom erboven (Y=155)
+            office.currentCamera = BACKROOM;
+            break;
+        case RIGHT_HALLWAY:
+            // Right Hallway (Y=240) -> Kitchen/Restroom erboven (Y=155)
+            office.currentCamera = KITCHEN;
+            break;
+        case LEFT_OFFICE:
+            // Left Office (Y=325) -> Left Hallway erboven (Y=240)
+            office.currentCamera = LEFT_HALLWAY;
+            break;
+        case RIGHT_OFFICE:
+            // Right Office (Y=325) -> Right Hallway erboven (Y=240)
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        default:
+            office.currentCamera = SHOW_STAGE;
+            break;
+    }
+}
+
+void Game::cycleLeftSideCameras() {
+    // LEFT arrow: Ga naar de kamer LINKS van de huidige op de minimap
+    switch(office.currentCamera) {
+        case SHOW_STAGE:
+            // Show Stage (X=230) -> Backroom links (X=70)
+            office.currentCamera = BACKROOM;
+            break;
+        case DINING_HALL:
+            // Dining Hall (X=230) -> Backroom links (X=70)
+            office.currentCamera = BACKROOM;
+            break;
+        case KITCHEN:
+            // Kitchen (X=390) -> Dining Hall links (X=230)
+            office.currentCamera = DINING_HALL;
+            break;
+        case RESTROOM:
+            // Restroom (X=520) -> Kitchen links (X=390)
+            office.currentCamera = KITCHEN;
+            break;
+        case RIGHT_HALLWAY:
+            // Right Hallway (X=410) -> Left Hallway links (X=90)
+            office.currentCamera = LEFT_HALLWAY;
+            break;
+        case RIGHT_OFFICE:
+            // Right Office (X=405) -> Left Office links (X=100)
+            office.currentCamera = LEFT_OFFICE;
+            break;
+        case BACKROOM:
+        case LEFT_HALLWAY:
+        case LEFT_OFFICE:
+            // Al helemaal links, blijf hier of ga naar rechts
+            // Ga naar de rechterkant
+            office.currentCamera = DINING_HALL;
+            break;
+        default:
+            office.currentCamera = BACKROOM;
+            break;
+    }
+}
+
+void Game::cycleRightSideCameras() {
+    // RIGHT arrow: Ga naar de kamer RECHTS van de huidige op de minimap
+    switch(office.currentCamera) {
+        case SHOW_STAGE:
+            // Show Stage (X=230) -> Kitchen rechts (X=390)
+            office.currentCamera = KITCHEN;
+            break;
+        case DINING_HALL:
+            // Dining Hall (X=230) -> Kitchen rechts (X=390)
+            office.currentCamera = KITCHEN;
+            break;
+        case BACKROOM:
+            // Backroom (X=70) -> Dining Hall rechts (X=230)
+            office.currentCamera = DINING_HALL;
+            break;
+        case KITCHEN:
+            // Kitchen (X=390) -> Restroom rechts (X=520)
+            office.currentCamera = RESTROOM;
+            break;
+        case LEFT_HALLWAY:
+            // Left Hallway (X=90) -> Right Hallway rechts (X=410)
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        case LEFT_OFFICE:
+            // Left Office (X=100) -> Right Office rechts (X=405)
+            office.currentCamera = RIGHT_OFFICE;
+            break;
+        case RESTROOM:
+        case RIGHT_HALLWAY:
+        case RIGHT_OFFICE:
+            // Al helemaal rechts, blijf hier of ga naar links
+            // Ga terug naar midden
+            office.currentCamera = DINING_HALL;
+            break;
+        default:
+            office.currentCamera = KITCHEN;
+            break;
+    }
+}
+
+void Game::cycleImportantCameras() {
+    // TAB: cycle door alleen de belangrijkste kamers voor snelle checks
+    // Show Stage -> Dining Hall -> Left Hallway -> Right Hallway -> Left Door -> Right Door
+    switch(office.currentCamera) {
+        case SHOW_STAGE:
+            office.currentCamera = DINING_HALL;
+            break;
+        case DINING_HALL:
+        case BACKROOM:
+        case KITCHEN:
+        case RESTROOM:
+            // Van midden kamers ga naar linker gang
+            office.currentCamera = LEFT_HALLWAY;
+            break;
+        case LEFT_HALLWAY:
+            office.currentCamera = RIGHT_HALLWAY;
+            break;
+        case RIGHT_HALLWAY:
+            office.currentCamera = LEFT_OFFICE;
+            break;
+        case LEFT_OFFICE:
+            office.currentCamera = RIGHT_OFFICE;
+            break;
+        case RIGHT_OFFICE:
+            // Loop terug naar start
+            office.currentCamera = SHOW_STAGE;
+            break;
+        default:
+            office.currentCamera = SHOW_STAGE;
+            break;
+    }
+}
