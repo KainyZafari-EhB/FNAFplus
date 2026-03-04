@@ -42,7 +42,7 @@ private:
 
     // Lightweight post-processing and UI helpers
     void drawVignette(Uint8 alpha);
-    void drawLowPowerTint(float powerLevel);
+    void drawLowPowerTint(float powerLevel, bool cameraActive);
     void drawUiPanel(const SDL_FRect& rect, Uint8 alpha, bool warning = false);
 
     // Camera view rendering functions (one for each room)

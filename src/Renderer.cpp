@@ -55,7 +55,7 @@ void Renderer::render(const Office& office, const Animatronic& bonnie, const Ani
     }
 
     // Lightweight mood pass: stronger when camera is active / power is low.
-    drawLowPowerTint(office.powerLevel);
+    drawLowPowerTint(office.powerLevel, office.cameraActive);
     drawVignette(office.cameraActive ? 26 : 18);
 
     // STAP 3: Teken de UI (Altijd bovenop)
@@ -97,47 +97,84 @@ void Renderer::drawVignette(Uint8 alpha) {
     SDL_RenderFillRect(sdlRenderer, &right);
 }
 
-void Renderer::drawLowPowerTint(float powerLevel) {
-    // Subtle power warning - only intense when VERY low (under 5%)
-    // Between 5-25%: Just edge vignette and text warnings
+void Renderer::drawLowPowerTint(float powerLevel, bool cameraActive) {
+    // Power warning system - different behavior for office vs camera view
+    // Office (POV): Only subtle edge vignette, NO popups (immersion!)
+    // Camera: Can show UI popups (it's a security system interface)
 
     if (powerLevel >= 25.0f) {
         return; // No warning above 25%
     }
 
-    // === CRITICAL POWER (0-5%) - Full red overlay ===
+    // === IN OFFICE VIEW (POV) - NO POPUPS, ONLY SUBTLE EFFECTS ===
+    if (!cameraActive) {
+        // Very subtle red edge vignette gets stronger as power drops
+        float edge_intensity = (25.0f - powerLevel) / 25.0f;
+        if (edge_intensity < 0.0f) edge_intensity = 0.0f;
+        if (edge_intensity > 1.0f) edge_intensity = 1.0f;
+
+        Uint8 edge_alpha = static_cast<Uint8>(edge_intensity * 40.0f);
+
+        // Subtle red edges (gets darker at very low power)
+        Uint8 red_val = powerLevel < 10.0f ? 120 : 80;
+        SDL_SetRenderDrawColor(sdlRenderer, red_val, 0, 0, edge_alpha);
+
+        SDL_FRect topEdge = {0, 0, 800, 60};
+        SDL_FRect leftEdge = {0, 0, 50, 600};
+        SDL_FRect rightEdge = {750, 0, 50, 600};
+        SDL_FRect bottomEdge = {0, 540, 800, 60};
+        SDL_RenderFillRect(sdlRenderer, &topEdge);
+        SDL_RenderFillRect(sdlRenderer, &leftEdge);
+        SDL_RenderFillRect(sdlRenderer, &rightEdge);
+        SDL_RenderFillRect(sdlRenderer, &bottomEdge);
+
+        return; // NO POPUPS IN OFFICE VIEW!
+    }
+
+    // === IN CAMERA VIEW - CAN SHOW SYSTEM WARNINGS ===
+
+    // CRITICAL POWER (0-5%) - Full system warning
     if (powerLevel < 5.0f) {
         float intensity = (5.0f - powerLevel) / 5.0f;
         if (intensity < 0.0f) intensity = 0.0f;
         if (intensity > 1.0f) intensity = 1.0f;
 
-        // NOW we can use strong red (but still less than before)
-        Uint8 alpha = static_cast<Uint8>(intensity * 60.0f);
+        // Strong red overlay on camera feed
+        Uint8 alpha = static_cast<Uint8>(intensity * 70.0f);
         SDL_SetRenderDrawColor(sdlRenderer, 120, 0, 0, alpha);
         SDL_FRect overlay = {0, 0, 800, 600};
         SDL_RenderFillRect(sdlRenderer, &overlay);
 
-        // Flashing critical warning
+        // Flashing CRITICAL warning (system alert style)
         if ((SDL_GetTicks() / 250) % 2) {
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 0, 0, 230);
-            SDL_FRect warningBG = {225, 240, 350, 120};
+            SDL_SetRenderDrawColor(sdlRenderer, 200, 0, 0, 240);
+            SDL_FRect warningBG = {200, 220, 400, 160};
             SDL_RenderFillRect(sdlRenderer, &warningBG);
 
+            // Border
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 50, 50, 255);
+            SDL_RenderRect(sdlRenderer, &warningBG);
+            SDL_FRect innerBorder = {202, 222, 396, 156};
+            SDL_RenderRect(sdlRenderer, &innerBorder);
+
             SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
-            SDL_RenderDebugText(sdlRenderer, 250, 260, "!!! CRITICAL !!!");
-            SDL_RenderDebugText(sdlRenderer, 240, 285, "POWER FAILURE!");
+            SDL_RenderDebugText(sdlRenderer, 230, 245, "=== SYSTEM ALERT ===");
             SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
-            SDL_RenderDebugText(sdlRenderer, 250, 320, "LIGHTS OUT SOON!");
+            SDL_RenderDebugText(sdlRenderer, 240, 280, "CRITICAL POWER!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 200, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, 220, 315, "SYSTEMS FAILING!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 100, 255);
+            SDL_RenderDebugText(sdlRenderer, 235, 350, "LIGHTS OUT SOON");
         }
         return;
     }
 
-    // === LOW POWER (5-15%) - Moderate edge vignette only ===
+    // LOW POWER (5-15%) - System warning on camera
     if (powerLevel < 15.0f) {
         float edge_intensity = (15.0f - powerLevel) / 10.0f;
         Uint8 edge_alpha = static_cast<Uint8>(edge_intensity * 60.0f);
 
-        // RED EDGE VIGNETTE (top and sides) - NOT full screen
+        // Red vignette on camera feed
         SDL_SetRenderDrawColor(sdlRenderer, 100, 0, 0, edge_alpha);
         SDL_FRect topEdge = {0, 0, 800, 80};
         SDL_FRect leftEdge = {0, 0, 60, 600};
@@ -148,25 +185,30 @@ void Renderer::drawLowPowerTint(float powerLevel) {
         SDL_RenderFillRect(sdlRenderer, &rightEdge);
         SDL_RenderFillRect(sdlRenderer, &bottomEdge);
 
-        // Flashing warning box
-        if ((SDL_GetTicks() / 350) % 2) {
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 80, 0, 200);
-            SDL_FRect warningBG = {250, 250, 300, 100};
+        // Flashing warning box (security system style)
+        if ((SDL_GetTicks() / 400) % 2) {
+            SDL_SetRenderDrawColor(sdlRenderer, 180, 60, 0, 220);
+            SDL_FRect warningBG = {230, 240, 340, 120};
             SDL_RenderFillRect(sdlRenderer, &warningBG);
 
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 100, 0, 255);
+            SDL_RenderRect(sdlRenderer, &warningBG);
+
             SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 255, 255);
-            SDL_RenderDebugText(sdlRenderer, 280, 270, "!!! LOW POWER !!!");
-            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 0, 255);
-            SDL_RenderDebugText(sdlRenderer, 260, 300, "CONSERVE ENERGY!");
+            SDL_RenderDebugText(sdlRenderer, 265, 265, "=== LOW POWER ===");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 255, 100, 255);
+            SDL_RenderDebugText(sdlRenderer, 245, 300, "CONSERVE ENERGY!");
+            SDL_SetRenderDrawColor(sdlRenderer, 255, 200, 0, 255);
+            SDL_RenderDebugText(sdlRenderer, 255, 330, "Close doors/cameras");
         }
         return;
     }
 
-    // === WARNING (15-25%) - Very subtle edge vignette + text ===
+    // WARNING (15-25%) - Subtle system indicator on camera
     float subtle_intensity = (25.0f - powerLevel) / 10.0f;
-    Uint8 subtle_alpha = static_cast<Uint8>(subtle_intensity * 30.0f);
+    Uint8 subtle_alpha = static_cast<Uint8>(subtle_intensity * 35.0f);
 
-    // Very subtle red edges
+    // Very subtle red edges on camera
     SDL_SetRenderDrawColor(sdlRenderer, 80, 0, 0, subtle_alpha);
     SDL_FRect topEdge = {0, 0, 800, 50};
     SDL_FRect leftEdge = {0, 0, 40, 600};
@@ -177,9 +219,9 @@ void Renderer::drawLowPowerTint(float powerLevel) {
     SDL_RenderFillRect(sdlRenderer, &rightEdge);
     SDL_RenderFillRect(sdlRenderer, &bottomEdge);
 
-    // Simple warning text at bottom
-    SDL_SetRenderDrawColor(sdlRenderer, 255, 150, 0, 220);
-    SDL_RenderDebugText(sdlRenderer, 330, 570, "LOW POWER");
+    // Small text warning on camera feed (system status)
+    SDL_SetRenderDrawColor(sdlRenderer, 255, 180, 0, 200);
+    SDL_RenderDebugText(sdlRenderer, 315, 25, "LOW POWER WARNING");
 }
 
 void Renderer::drawPowerBar(float powerLevel) {
